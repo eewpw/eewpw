@@ -1,0 +1,59 @@
+version: "3.9"
+
+services:
+  redis:
+    image: redis:7-alpine
+    container_name: eewpw-redis
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+  backend:
+    image: ${BACKEND_IMAGE:-ghcr.io/eewpw/eewpw-backend}:${BACKEND_TAG:-main}
+    container_name: eewpw-backend
+    depends_on:
+      redis:
+        condition: service_healthy
+    environment:
+      # Backend config
+      REDIS_URL: "redis://redis:6379/0"
+      EEWPW_DATA_DIR: "/app/data"          # in-container data root
+      CORS_ENABLED: "1"
+      CORS_ORIGINS: "http://127.0.0.1:8050,http://localhost:8050"
+      JSON_LOGS: "1"
+      LOG_TO_FILE: "1"
+      CURSOR_TTL_SECONDS: "0"
+    volumes:
+      - eew_data:/app/data
+    ports:
+      - "8000:8000"
+    healthcheck:
+      test: ["CMD-SHELL", "python -c \"import urllib.request;print(urllib.request.urlopen('http://127.0.0.1:8000/healthz', timeout=2).status)\""]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+    restart: unless-stopped
+
+  frontend:
+    image: ${FRONTEND_IMAGE:-ghcr.io/eewpw/eewpw-dashboard}:${FRONTEND_TAG:-main}
+    container_name: eewpw-dashboard
+    depends_on:
+      backend:
+        condition: service_healthy
+    environment:
+      BACKEND_BASE_URL: "http://backend:8000"   # service name reachable on the compose network
+      HOST: "0.0.0.0"
+      PORT: "8050"
+      DASH_DEBUG_MODE: "false"
+      APP_TITLE: "EEW Performance Viewer"
+    ports:
+      - "8050:8050"
+    restart: unless-stopped
+
+volumes:
+  eew_data:
+    driver: local
