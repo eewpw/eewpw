@@ -5,7 +5,7 @@
 
 ## Summary
 This repository provides a **turn‑key Docker Compose deployment** for the EEW Performance Viewer (EEWPW):
-- Orchestrates the **backend API** and the **dashboard (Dash)** containers, plus optional **Redis**.
+- This repository does not contain the backend or dashboard code — it orchestrates them as Docker images: the **backend API** and the **dashboard (Dash)** containers, plus optional **Redis**.
 - Centralizes configuration in a single **`.env`** file (ports, image tags, URLs, data path).
 - Offers helper scripts and Make targets for **first‑run**, **updates**, **health checks**, and **config management**.
 - Supports two runtime modes:
@@ -23,7 +23,6 @@ This repository provides a **turn‑key Docker Compose deployment** for the EEW 
 - [Sharing external datasets (MMIs, ruptures, catalogs)](#sharing-external-datasets-mmis-ruptures-catalogs)
 - [Starting & Stopping](#starting--stopping)
 - [Using the Dashboard](#using-the-dashboard)
-- [Choose a Redis Mode](#choose-a-redis-mode)
 - [Update Images / Upgrade](#update-images--upgrade)
 - [Troubleshooting](#troubleshooting)
 - [Appendix](#appendix)
@@ -55,15 +54,15 @@ This repository provides a **turn‑key Docker Compose deployment** for the EEW 
    ```
    Edit the `.env` file. 
    
-   > **You must decide your Redis mode while editing `.env`:** [more on `.env`](#redis-configuration-notes)
+   > **You must decide your Redis mode while editing `.env`:** ([more on `.env` in Appendix](#redis-configuration-notes))
    
-   * If you already have a Redis server running (perhaps you are a developer and need Redis in the background):
-   Make sure `REDIS_URL=redis://host.docker.internal:6379/0.` is in the `.env` and uncommented.
-   * You are sure you have not installed the Redis server before:
-   Comment out the `REDIS_URL` line.
+   * If you already have Redis: Make sure `REDIS_URL=redis://host.docker.internal:6379/0.` is in the `.env` and uncommented.
+   * You are sure you have not installed the Redis before: Comment out the `REDIS_URL` line.
 
 
-3. To start the container stack, use the [make](#make-tool):
+3. To start the container stack, use the ([see Appendix → make](#the-make-tool)):
+
+   This step also depends on whether you have Redis or not. Please see the [make](#the-make-tool) tool.
    ```bash
    make up
    ```
@@ -72,7 +71,7 @@ This repository provides a **turn‑key Docker Compose deployment** for the EEW 
    ```bash
    make smoke
    ```
-   Please see [make tool](#make-tool) for all options.
+   See [make tool](#the-make-tool) for all options.
 
 5. Access the dashboard: 
 On your browser, go to `http://localhost:${FRONTEND_PORT}` (defaults to **http://localhost:8050**).
@@ -166,15 +165,6 @@ docker compose restart backend
 - Open: `http://localhost:${FRONTEND_PORT}` (default: **8050**).
 - Upload files and run analyses. The dashboard calls the backend at `BACKEND_BASE_URL`.
 - Persistent data created by the backend is stored under `${DATA_ROOT}` on the host (default `./data`).
-
----
-
-## Choose a Redis Mode
-- **Embedded Redis**: use `docker-compose.yml` and **do not** set `REDIS_URL`. Backend will connect to the in‑stack `redis` service.
-- **External Redis**: use `docker-no-redis-compose.yml` **and** set `REDIS_URL` in `.env`, e.g.:
-  ```env
-  REDIS_URL=redis://host.docker.internal:6379/0
-  ```
 
 ---
 
@@ -288,7 +278,6 @@ Each `make` target performs a defined operation.
 Run any of these commands from the project root (where your `.env` file is located).  
 By default, `docker-compose.yml` is used — override it by adding `COMPOSE_FILE=<path>`.
 
----
 
 #### **Core Commands**
 | Command | Description |
@@ -304,7 +293,6 @@ By default, `docker-compose.yml` is used — override it by adding `COMPOSE_FILE
 | **make smoke** | Performs a backend health check via `/healthz` using `scripts/smoke.sh`. |
 | **make clean** | Stops and removes containers **and** all volumes for a clean reset. |
 
----
 
 #### **Using a Custom Compose File**
 To switch between configurations (e.g., with or without Redis), specify a compose file inline:
