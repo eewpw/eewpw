@@ -15,7 +15,7 @@ ensure-env:
 dirs: ensure-env
 	@set -a; source .env; set +a; \
 	mkdir -p $$DATA_ROOT; \
-	mkdir -p $$DATA_ROOT/files $$DATA_ROOT/indexes $$DATA_ROOT/logs
+	mkdir -p $$DATA_ROOT/files $$DATA_ROOT/indexes $$DATA_ROOT/logs $$DATA_ROOT/auxdata
 
 pull: ensure-env
 	$(DC) pull
