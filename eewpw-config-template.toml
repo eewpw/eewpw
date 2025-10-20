@@ -1,0 +1,40 @@
+# ========================================================================
+# This is a template file for the EEW performance viewer configuration
+# parameters. Please copy this file as "dashapp.config" under the same
+# directory. You can edit the parameters and create new profiles for
+# additional simulations you run.
+#
+# Fields:
+# origin_time            : Earthquake origin time
+# playback_time          : Time that playback was performed. Together with origin time,
+#                            timestamps will be converted to the historical times.
+# earthquakes_timedelta. : Time window in seconds. The earthquakes on map will be shown
+#                            only if they are within [time step - earthquakes_timedelta]
+# mmi_distances          : CY08_worden or BA08_worden; method to calculate MMIs from distances.
+# earthquake_catalog     : List of earthquakes a CSV file. The columns should be the first row as 
+#                            Otime,longitude,latitude,depth_km,magnitude_type,magnitude,eventID,catalog
+#                            2023-02-06T01:17:32Z,37.043,37.288,8.6,Mw,7.7,543428,AFAD
+#.                           2023-02-06T01:23:16Z,36.806,37.224,7.0,ML,4.9,543432,AFAD
+# external_mmi_files.    : Any MMI data in GeoJSON format.
+# external_rupture_files : Rupture files in GeoJSON format.
+# moment_rate_function   : Any text file formatted as 
+#                            2023-02-06 01:17:34
+#                            dt: 0.01
+#                            Time[s]     Moment_Rate [Nm]
+#                            0.00		0.0000e+00
+#                            0.01		2.4079e+07
+# ========================================================================
+
+[general]
+
+
+# Example profile
+[profiles.example]
+origin_time = "2023-02-06 10:21:48"
+playback_time = "2025-02-10 22:30:18"
+earthquakes_timedelta = 600
+mmi_distances = "CY08_worden"
+earthquake_catalog = "auxdata/combined_earthquake_catalog.csv"
+external_mmi_files = "../../daily_json/external_mmi/cont_mmi.json"
+external_rupture_files = "rupture1.json; rupture2.json"
+moment_rate_function = "../../daily_json/moment_rate_pazarcik.mr"
