@@ -3,7 +3,7 @@
 [![Backend Build](https://github.com/eewpw/eewpw-backend/actions/workflows/docker.yml/badge.svg?branch=master)](https://github.com/eewpw/eewpw-backend/actions/workflows/docker.yml)
 [![Frontend Build](https://github.com/eewpw/eewpw-dashboard/actions/workflows/docker.yml/badge.svg?branch=master)](https://github.com/eewpw/eewpw-dashboard/actions/workflows/docker.yml)
 
-## What this repo does (summary)
+## Summary
 This repository provides a **turn‑key Docker Compose deployment** for the EEW Performance Viewer (EEWPW):
 - Orchestrates the **backend API** and the **dashboard (Dash)** containers, plus optional **Redis**.
 - Centralizes configuration in a single **`.env`** file (ports, image tags, URLs, data path).
@@ -12,13 +12,13 @@ This repository provides a **turn‑key Docker Compose deployment** for the EEW 
   1) **With bundled Redis** (`docker-compose.yml`)
   2) **Using an external Redis** (`docker-no-redis-compose.yml`), e.g., your own local/remote Redis.
 
+> For platform and architecture compatibility, see [Appendix: Platform Compatibility](#appendix-platform-compatibility).
+
 ---
 
 ## Table of Contents
 - [Prerequisites](#prerequisites)
-- [Platform compatibility](#)
-- [Quick Start](#quick-start)
-- [Configuration (.env)](#configuration-env)
+- [Installation](#installation)
 - [Manage `eewpw-config.toml`](#manage-eewpw-configtoml)
 - [Sharing external datasets (MMIs, ruptures, catalogs)](#sharing-external-datasets-mmis-ruptures-catalogs)
 - [Starting & Stopping](#starting--stopping)
@@ -26,92 +26,63 @@ This repository provides a **turn‑key Docker Compose deployment** for the EEW 
 - [Choose a Redis Mode](#choose-a-redis-mode)
 - [Update Images / Upgrade](#update-images--upgrade)
 - [Troubleshooting](#troubleshooting)
-- [Make Targets](#make-targets)
+- [Appendix](#appendix)
 
 ---
 
 ## Prerequisites
+#### [⬆Back to top](#eewpw-deployment)
+
 - **Docker** and **Docker Compose plugin** (Docker Desktop on macOS/Windows; Docker Engine + Compose on Linux)
-- Network access to **GHCR** (GitHub Container Registry) to pull images
+- Possibly, network access to **GHCR** (GitHub Container Registry) to pull images
+> **Note:** Our containers are public. If at some point they are temporarily made private, you will receive `access error` while building the application. If that's case, login to GitHub Container Registery before proceeding: `docker login ghcr.io`. You will need to use your GitHub username and personal access token.
 
 ---
 
-### Platform Compatibility
+## Installation
+#### [⬆Back to top](#eewpw-deployment)
 
-EEWPW containers are **multi-architecture images** built for both `linux/amd64` and `linux/arm64`.  
-They run seamlessly on macOS (Intel or Apple Silicon), Linux, and Windows via Docker Desktop (WSL 2).
-
-| Platform | Works? | Notes |
-|-----------|--------|-------|
-| **macOS (Intel / Apple Silicon)** | ✅ | Fully supported; multi-arch images run natively |
-| **Linux** | ✅ | Fully supported |
-| **Windows 10 / 11 + Docker Desktop (WSL 2)** | ✅ | Fully supported — must be in Linux containers mode |
-| **Windows Server / Windows containers mode** | ❌ | Not supported — EEWPW images are Linux-based |
-
-> **Notes:**  
-> - On Windows, enable **WSL 2 based engine** in Docker Desktop (`Settings → General`).  
-> - Keep your project folder under a user path (e.g. `C:\\Users\\you\\Projects\\eewpw`).  
-> - Compose and Make commands are identical across platforms:
->   ```bash
->   make up
->   make smoke
->   ```
-
----
-
-## Quick Start
-> **Note:** If you receive `access error` to while building the application, please try to login to GitHub Container Registery before proceeding: `docker login ghcr.io`. You will need to use your GitHub username and personal access token.
 
 1. Clone this repo and create your environment file:
    ```bash
+   git clone https://github.com/eewpw/eewpw.git
    cd eewpw
+   ```
+
+2. Prepare environment file
+   ```bash
    cp .env.example .env
    ```
-2. Create local data directories and start the stack:
+   Edit the `.env` file. 
+   
+   > **You must decide your Redis mode while editing `.env`:** [more on `.env`](#redis-configuration-notes)
+   
+   * If you already have a Redis server running (perhaps you are a developer and need Redis in the background):
+   Make sure `REDIS_URL=redis://host.docker.internal:6379/0.` is in the `.env` and uncommented.
+   * You are sure you have not installed the Redis server before:
+   Comment out the `REDIS_URL` line.
+
+
+3. To start the container stack, use the [make](#make-tool):
    ```bash
    make up
    ```
-3. Run the smoke tests:
+
+4. Run the smoke test:
    ```bash
    make smoke
    ```
-4. Open the dashboard: `http://localhost:${FRONTEND_PORT}` (defaults to **http://localhost:8050**).
+   Please see [make tool](#make-tool) for all options.
 
----
+5. Access the dashboard: 
+On your browser, go to `http://localhost:${FRONTEND_PORT}` (defaults to **http://localhost:8050**).
 
-## Configuration (.env)
-All runtime config lives in `.env`. Key entries:
-
-```env
-# Images (from GHCR)
-BACKEND_IMAGE=ghcr.io/eewpw/eewpw-backend
-BACKEND_TAG=master
-FRONTEND_IMAGE=ghcr.io/eewpw/eewpw-dashboard
-FRONTEND_TAG=main
-
-# Ports (host)
-# You can change these if 8000 or 8050 are already in use on your system.
-# For example, BACKEND_PORT=8001 and FRONTEND_PORT=8051 will avoid conflicts.
-BACKEND_PORT=8000
-FRONTEND_PORT=8050
-
-# Backend runtime
-EEWPW_DATA_DIR=/app/data
-DATA_ROOT=./data
-
-# Service-to-service base URL (frontend → backend)
-BACKEND_BASE_URL=http://backend:8000
-EEWPW_BACKEND_BASE=http://backend:8000
-
-# If using an external Redis, set this (otherwise leave unset)
-# REDIS_URL=redis://host.docker.internal:6379/0
-```
-
-> **Note:** Inside Docker, the frontend reaches the backend at `http://backend:8000` (Compose service DNS). If you run the frontend natively, set these to `http://localhost:8000`.
 
 ---
 
 ## Manage `eewpw-config.toml`
+#### [⬆Back to top](#eewpw-deployment)
+
 Use the helper script to manage a config file **inside the frontend container** at `/app/client/eewpw-config.toml`.
 
 ```bash
@@ -141,6 +112,8 @@ For a detailed description of all configuration fields and examples, see [docs/R
 ---
 
 ## Sharing external datasets (MMIs, ruptures, catalogs)
+#### [⬆Back to top](#eewpw-deployment)
+
 To make host files (e.g., MMIs, ruptures, earthquake catalogs) visible to the dashboard, place them under the shared data directory and use those paths in your config.
 
 **Convention:** use `./data/auxdata` on the host. The compose files mount this folder into the frontend at `/app/client/auxdata` (read‑only).
@@ -158,6 +131,8 @@ external_rupture_files = "auxdata/ruptures/rupture1.json; auxdata/ruptures/ruptu
 ---
 
 ## Starting & Stopping
+#### [⬆Back to top](#eewpw-deployment)
+
 **With bundled Redis** (default compose):
 ```bash
 docker compose up -d           # start all
@@ -186,6 +161,8 @@ docker compose restart backend
 ---
 
 ## Using the Dashboard
+#### [⬆Back to top](#eewpw-deployment)
+
 - Open: `http://localhost:${FRONTEND_PORT}` (default: **8050**).
 - Upload files and run analyses. The dashboard calls the backend at `BACKEND_BASE_URL`.
 - Persistent data created by the backend is stored under `${DATA_ROOT}` on the host (default `./data`).
@@ -202,6 +179,8 @@ docker compose restart backend
 ---
 
 ## Update Images / Upgrade
+#### [⬆Back to top](#eewpw-deployment)
+
 Pull the latest images and restart:
 ```bash
 make pull
@@ -214,6 +193,8 @@ If you’re tracking immutable tags (SHAs), update `BACKEND_TAG` / `FRONTEND_TAG
 ---
 
 ## Troubleshooting
+#### [⬆Back to top](#eewpw-deployment)
+
 - **Frontend can’t reach backend**:
   - Ensure `.env` has `BACKEND_BASE_URL=http://backend:8000` (for containerized frontend).
   - `docker compose exec frontend curl -sS http://backend:8000/healthz` should return 200.
@@ -227,23 +208,118 @@ If you’re tracking immutable tags (SHAs), update `BACKEND_TAG` / `FRONTEND_TAG
 
 ---
 
-## Make Targets
-```text
-make up        # create data dirs and start services
-make down      # stop services
-make pull      # pull latest images
-make logs      # tail logs for all services
-make ps        # show container status
-make smoke     # health check backend + frontend
-```
+
+## Appendix: 
+
+### Platform Compatibility
+#### [⬆Back to top](#eewpw-deployment)
+EEWPW containers are **multi-architecture images** built for both `linux/amd64` and `linux/arm64`.  
+They run seamlessly on macOS (Intel or Apple Silicon), Linux, and Windows via Docker Desktop (WSL 2).
+
+| Platform | Works? | Notes |
+|-----------|--------|-------|
+| **macOS (Intel / Apple Silicon)** | ✅ | Fully supported; multi-arch images run natively |
+| **Linux** | ✅ | Fully supported |
+| **Windows 10 / 11 + Docker Desktop (WSL 2)** | ✅ | Fully supported — must be in Linux containers mode |
+| **Windows Server / Windows containers mode** | ❌ | Not supported — EEWPW images are Linux-based |
+
+> **Notes:**  
+> - On Windows, enable **WSL 2 based engine** in Docker Desktop (`Settings → General`).  
+> - Keep your project folder under a user path (e.g. `C:\Users\you\Projects\eewpw`).  
+> - Compose and Make commands are identical across platforms:
+>   ```bash
+>   make up
+>   make smoke
+>   ```
 
 ---
 
-## Using a Custom Compose File
-You can run any Make target with a different Docker Compose file by setting the `COMPOSE_FILE` variable.
-This is useful when switching between configurations (for example, with or without Redis) without editing the Makefile.
+### Redis Configuration Notes
+#### [⬆Back to top](#eewpw-deployment)
 
-### Examples
+- **Bundled Redis** (default):  
+  No `REDIS_URL` is needed; Compose runs Redis automatically.
+
+- **External Redis**:  
+  Uncomment and set `REDIS_URL` in `.env`, for example:  
+  `REDIS_URL=redis://host.docker.internal:6379/0`  
+  This is useful if you already run Redis locally or remotely.
+
+> You can switch between these modes anytime by editing `.env` and restarting with `make down && make up`.
+
+All runtime config lives in `.env`. Key entries:
+
+```env
+# Images (from GHCR)
+BACKEND_IMAGE=ghcr.io/eewpw/eewpw-backend
+BACKEND_TAG=master
+FRONTEND_IMAGE=ghcr.io/eewpw/eewpw-dashboard
+FRONTEND_TAG=master
+
+# Ports (host)
+# You can change these if 8000 or 8050 are already in use on your system.
+# For example, BACKEND_PORT=8001 and FRONTEND_PORT=8051 will avoid conflicts.
+BACKEND_PORT=8000
+FRONTEND_PORT=8050
+
+# Backend runtime
+EEWPW_DATA_DIR=/app/data
+DATA_ROOT=./data
+
+# Service-to-service base URL (frontend → backend)
+BACKEND_BASE_URL=http://backend:8000
+EEWPW_BACKEND_BASE=http://backend:8000
+
+# If using an external Redis, set this (otherwise leave unset) <<<========
+# REDIS_URL=redis://host.docker.internal:6379/0
+```
+
+> **Note:** Inside Docker, the frontend reaches the backend at `http://backend:8000` (Compose service DNS). If you run the frontend natively, set these to `http://localhost:8000`.
+
+--- 
+
+### The `make` tool
+#### [⬆Back to top](#eewpw-deployment)
+
+The `Makefile` included in this repository simplifies day-to-day management of the EEWPW deployment.  
+It wraps all necessary Docker Compose commands, ensures environment setup, and creates required directories before launching containers.
+
+Each `make` target performs a defined operation.  
+Run any of these commands from the project root (where your `.env` file is located).  
+By default, `docker-compose.yml` is used — override it by adding `COMPOSE_FILE=<path>`.
+
+---
+
+#### **Core Commands**
+| Command | Description |
+|----------|--------------|
+| **make help** | Shows all available Make targets and usage hints. |
+| **make ensure-env** | Verifies `.env` exists before running other targets. Exits with an error if missing. |
+| **make dirs** | Creates the data directory structure (`$DATA_ROOT/files`, `indexes`, `logs`, `auxdata`). Automatically called by `make up`. |
+| **make pull** | Pulls the latest backend and frontend images from GitHub Container Registry (GHCR). |
+| **make up** | Starts the full stack in detached mode (`-d`). Runs `dirs` first to ensure paths exist. |
+| **make down** | Stops and removes containers and the network, but keeps data volumes. |
+| **make logs** | Follows combined logs for all services (latest 200 lines). Press `Ctrl+C` to stop. |
+| **make ps** | Lists container status (running, exited, unhealthy, etc.). |
+| **make smoke** | Performs a backend health check via `/healthz` using `scripts/smoke.sh`. |
+| **make clean** | Stops and removes containers **and** all volumes for a clean reset. |
+
+---
+
+#### **Using a Custom Compose File**
+To switch between configurations (e.g., with or without Redis), specify a compose file inline:
+
+```bash
+# Start the stack without bundled Redis
+make up COMPOSE_FILE=docker-no-redis-compose.yml
+
+# Run smoke test using the same configuration
+make smoke COMPOSE_FILE=docker-no-redis-compose.yml
+
+# View container logs with a specific compose file
+make logs COMPOSE_FILE=docker-no-redis-compose.yml
+
+#### Examples
 ```bash
 # Default: uses docker-compose.yml
 make up
