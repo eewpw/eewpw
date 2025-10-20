@@ -20,6 +20,7 @@ This repository provides a **turn‑key Docker Compose deployment** for the EEW 
 - [Quick Start](#quick-start)
 - [Configuration (.env)](#configuration-env)
 - [Manage `eewpw-config.toml`](#manage-eewpw-configtoml)
+- [Sharing external datasets (MMIs, ruptures, catalogs)](#sharing-external-datasets-mmis-ruptures-catalogs)
 - [Starting & Stopping](#starting--stopping)
 - [Using the Dashboard](#using-the-dashboard)
 - [Choose a Redis Mode](#choose-a-redis-mode)
@@ -59,10 +60,7 @@ They run seamlessly on macOS (Intel or Apple Silicon), Linux, and Windows via Do
 ---
 
 ## Quick Start
-You need to login to GitHub Container Registery before proceeding: 
-```bash
-docker login ghcr.io
-```
+> **Note:** If you receive `access error` to while building the application, please try to login to GitHub Container Registery before proceeding: `docker login ghcr.io`. You will need to use your GitHub username and personal access token.
 
 1. Clone this repo and create your environment file:
    ```bash
@@ -92,6 +90,8 @@ FRONTEND_IMAGE=ghcr.io/eewpw/eewpw-dashboard
 FRONTEND_TAG=main
 
 # Ports (host)
+# You can change these if 8000 or 8050 are already in use on your system.
+# For example, BACKEND_PORT=8001 and FRONTEND_PORT=8051 will avoid conflicts.
 BACKEND_PORT=8000
 FRONTEND_PORT=8050
 
@@ -136,6 +136,25 @@ scripts/manage-config.sh delete
 
 You can override defaults via env vars: `EEWPW_COMPOSE_FILE` (default `docker-compose.yml`), `EEWPW_SERVICE=frontend`, `EEWPW_CONFIG_PATH=/app/client/eewpw-config.toml`.
 
+For a detailed description of all configuration fields and examples, see [docs/README_CONFIG.md](docs/README_CONFIG.md).
+
+---
+
+## Sharing external datasets (MMIs, ruptures, catalogs)
+To make host files (e.g., MMIs, ruptures, earthquake catalogs) visible to the dashboard, place them under the shared data directory and use those paths in your config.
+
+**Convention:** use `./data/auxdata` on the host. The compose files mount this folder into the frontend at `/app/client/auxdata` (read‑only).
+
+Example entries in `eewpw-config.toml`:
+
+```toml
+earthquake_catalog = "auxdata/combined_earthquake_catalog.csv"
+external_mmi_files = "auxdata/external_mmi/cont_mmi.json"
+external_rupture_files = "auxdata/ruptures/rupture1.json; auxdata/ruptures/rupture2.json"
+```
+
+> **Important**: `auxdata/...` paths are relative to the dashboard app and resolve to the mounted `/app/client/auxdata` inside the container. The same files live on your host under `./data/auxdata`.
+
 ---
 
 ## Starting & Stopping
@@ -155,6 +174,15 @@ docker compose -f docker-no-redis-compose.yml up -d
 docker compose restart backend
 ```
 
+> **Tip:** If you encounter an “address already in use” error on startup, another process or container may already be using port 8000 or 8050. You can adjust these in your `.env` file:
+> ```env
+> BACKEND_PORT=8001
+> FRONTEND_PORT=8051
+> ```
+> Then restart your stack:
+> ```bash
+> make down && make up
+> ```
 ---
 
 ## Using the Dashboard
@@ -190,7 +218,7 @@ If you’re tracking immutable tags (SHAs), update `BACKEND_TAG` / `FRONTEND_TAG
   - Ensure `.env` has `BACKEND_BASE_URL=http://backend:8000` (for containerized frontend).
   - `docker compose exec frontend curl -sS http://backend:8000/healthz` should return 200.
 - **Redis errors**: Set `REDIS_URL` to your external instance or use the bundled `docker-compose.yml`.
-- **Ports in use**: change `BACKEND_PORT` / `FRONTEND_PORT` in `.env`.
+- **Ports in use**: If you see “failed to bind host port … address already in use,” update `BACKEND_PORT` / `FRONTEND_PORT` in `.env` to unused values (e.g., 8001, 8051) and restart with `make down && make up`.
 - **Permissions on data**: ensure `${DATA_ROOT}` is writable by Docker (Linux: check user/group).
 - **Smoke test**:
   ```bash
