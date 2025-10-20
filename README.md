@@ -1,2 +1,4 @@
-![Backend](https://img.shields.io/github/actions/workflow/status/eewpw/eewpw-backend/docker.yml?branch=master&label=Backend%20Build&logo=docker)
-![Frontend](https://img.shields.io/github/actions/workflow/status/eewpw/eewpw-dashboard/docker.yml?branch=main&label=Frontend%20Build&logo=docker)
+# EEWPW Deployment
+
+[![Backend Build](https://github.com/eewpw/eewpw-backend/actions/workflows/docker.yml/badge.svg?branch=master)](https://github.com/eewpw/eewpw-backend/actions/workflows/docker.yml)
+[![Frontend Build](https://github.com/eewpw/eewpw-dashboard/actions/workflows/docker.yml/badge.svg?branch=master)](https://github.com/eewpw/eewpw-dashboard/actions/workflows/docker.yml)
