@@ -12,24 +12,24 @@ services:
       retries: 5
 
   backend:
-    image: ${BACKEND_IMAGE:-ghcr.io/eewpw/eewpw-backend}:${BACKEND_TAG:-main}
+    image: ${BACKEND_IMAGE}:${BACKEND_TAG}
     container_name: eewpw-backend
     depends_on:
       redis:
         condition: service_healthy
     environment:
       # Backend config
-      REDIS_URL: "redis://redis:6379/0"
-      EEWPW_DATA_DIR: "/app/data"          # in-container data root
-      CORS_ENABLED: "1"
-      CORS_ORIGINS: "http://127.0.0.1:8050,http://localhost:8050"
-      JSON_LOGS: "1"
-      LOG_TO_FILE: "1"
-      CURSOR_TTL_SECONDS: "0"
+      REDIS_URL: "${REDIS_URL:-redis://redis:6379/0}"
+      EEWPW_DATA_DIR: "${EEWPW_DATA_DIR}"
+      CORS_ENABLED: "${CORS_ENABLED}"
+      CORS_ORIGINS: "${CORS_ORIGINS}"
+      JSON_LOGS: "${JSON_LOGS}"
+      LOG_TO_FILE: "${LOG_TO_FILE}"
+      CURSOR_TTL_SECONDS: "${CURSOR_TTL_SECONDS}"
     volumes:
-      - eew_data:/app/data
+      - ${DATA_ROOT}:${EEWPW_DATA_DIR}
     ports:
-      - "8000:8000"
+      - "${BACKEND_PORT}:8000"
     healthcheck:
       test: ["CMD-SHELL", "python -c \"import urllib.request;print(urllib.request.urlopen('http://127.0.0.1:8000/healthz', timeout=2).status)\""]
       interval: 30s
@@ -39,21 +39,17 @@ services:
     restart: unless-stopped
 
   frontend:
-    image: ${FRONTEND_IMAGE:-ghcr.io/eewpw/eewpw-dashboard}:${FRONTEND_TAG:-main}
+    image: ${FRONTEND_IMAGE}:${FRONTEND_TAG}
     container_name: eewpw-dashboard
     depends_on:
       backend:
         condition: service_healthy
     environment:
-      BACKEND_BASE_URL: "http://backend:8000"   # service name reachable on the compose network
+      BACKEND_BASE_URL: "${BACKEND_BASE_URL}"
       HOST: "0.0.0.0"
-      PORT: "8050"
+      PORT: "${FRONTEND_PORT}"
       DASH_DEBUG_MODE: "false"
       APP_TITLE: "EEW Performance Viewer"
     ports:
-      - "8050:8050"
+      - "${FRONTEND_PORT}:8050"
     restart: unless-stopped
-
-volumes:
-  eew_data:
-    driver: local
