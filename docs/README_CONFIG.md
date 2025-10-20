@@ -5,6 +5,8 @@
 This directory contains the configuration template for the **EEW Performance Viewer (EEWPW)** application.  
 The file `eewpw-config-template.toml` defines all supported parameters used by the dashboard to control playback, input data, and visualization behavior.
 
+> **Important** The external files paths defined in the config file need to take 
+
 ---
 
 ## Quick Start
@@ -24,12 +26,12 @@ The file `eewpw-config-template.toml` defines all supported parameters used by t
 |-------|--------------|
 | **origin_time** | Earthquake origin time in UTC. |
 | **playback_time** | Playback reference time. Together with `origin_time`, it aligns displayed timestamps with real event times. |
-| **earthquakes_timedelta** | Time window (seconds). Only earthquakes within `[time step ± timedelta]` are visible on the map. |
+| **earthquakes_timedelta** | Time window (seconds). Only earthquakes within `[time step - timedelta]` are visible on the map. |
 | **mmi_distances** | Empirical relation used for MMI estimation (`CY08_worden` or `BA08_worden`). |
 | **earthquake_catalog** | Path to a CSV file listing earthquakes. Columns must include:<br>`Otime,longitude,latitude,depth_km,magnitude_type,magnitude,eventID,catalog` |
 | **external_mmi_files** | One or more GeoJSON files with external MMI data. |
 | **external_rupture_files** | One or more GeoJSON rupture files (semicolon-separated). |
-| **moment_rate_function** | Text file describing the moment-rate function, typically formatted as:<br>`Time[s]`, `Moment_Rate [Nm]`, and optional header fields like `dt:`. |
+| **moment_rate_function** | Text file describing the moment-rate function. Format: <br><br>```text<br>2023-02-06 01:17:34<br>dt: 0.01<br>Time[s]     Moment_Rate [Nm]<br>0.00        0.0000e+00<br>0.01        2.4079e+07<br>``` |
 
 ---
 
