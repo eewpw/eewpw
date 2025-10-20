@@ -16,6 +16,7 @@ This repository provides a **turn‑key Docker Compose deployment** for the EEW 
 
 ## Table of Contents
 - [Prerequisites](#prerequisites)
+- [Platform compatibility](#)
 - [Quick Start](#quick-start)
 - [Configuration (.env)](#configuration-env)
 - [Manage `eewpw-config.toml`](#manage-eewpw-configtoml)
@@ -31,6 +32,29 @@ This repository provides a **turn‑key Docker Compose deployment** for the EEW 
 ## Prerequisites
 - **Docker** and **Docker Compose plugin** (Docker Desktop on macOS/Windows; Docker Engine + Compose on Linux)
 - Network access to **GHCR** (GitHub Container Registry) to pull images
+
+---
+
+### Platform Compatibility
+
+EEWPW containers are **multi-architecture images** built for both `linux/amd64` and `linux/arm64`.  
+They run seamlessly on macOS (Intel or Apple Silicon), Linux, and Windows via Docker Desktop (WSL 2).
+
+| Platform | Works? | Notes |
+|-----------|--------|-------|
+| **macOS (Intel / Apple Silicon)** | ✅ | Fully supported; multi-arch images run natively |
+| **Linux** | ✅ | Fully supported |
+| **Windows 10 / 11 + Docker Desktop (WSL 2)** | ✅ | Fully supported — must be in Linux containers mode |
+| **Windows Server / Windows containers mode** | ❌ | Not supported — EEWPW images are Linux-based |
+
+> **Notes:**  
+> - On Windows, enable **WSL 2 based engine** in Docker Desktop (`Settings → General`).  
+> - Keep your project folder under a user path (e.g. `C:\\Users\\you\\Projects\\eewpw`).  
+> - Compose and Make commands are identical across platforms:
+>   ```bash
+>   make up
+>   make smoke
+>   ```
 
 ---
 
