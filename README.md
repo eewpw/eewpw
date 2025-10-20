@@ -35,8 +35,14 @@ This repository provides a **turn‑key Docker Compose deployment** for the EEW 
 ---
 
 ## Quick Start
+You need to login to GitHub Container Registery before proceeding: 
+```bash
+docker login ghcr.io
+```
+
 1. Clone this repo and create your environment file:
    ```bash
+   cd eewpw
    cp .env.example .env
    ```
 2. Create local data directories and start the stack:
