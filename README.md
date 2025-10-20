@@ -12,7 +12,7 @@ This repository provides a **turn‑key Docker Compose deployment** for the EEW 
   1) **With bundled Redis** (`docker-compose.yml`)
   2) **Using an external Redis** (`docker-no-redis-compose.yml`), e.g., your own local/remote Redis.
 
-> For platform and architecture compatibility, see [Appendix: Platform Compatibility](#appendix-platform-compatibility).
+> For platform and architecture compatibility, see [Appendix: Platform Compatibility](#platform-compatibility).
 
 ---
 
