@@ -1,0 +1,42 @@
+
+services:
+  backend:
+    image: ${BACKEND_IMAGE}:${BACKEND_TAG}
+    container_name: eewpw-backend
+    environment:
+      # Backend config
+      REDIS_URL: "${REDIS_URL:-redis://redis:6379/0}"
+      EEWPW_DATA_DIR: "${EEWPW_DATA_DIR}"
+      CORS_ENABLED: "${CORS_ENABLED}"
+      CORS_ORIGINS: "${CORS_ORIGINS}"
+      JSON_LOGS: "${JSON_LOGS}"
+      LOG_TO_FILE: "${LOG_TO_FILE}"
+      CURSOR_TTL_SECONDS: "${CURSOR_TTL_SECONDS}"
+    volumes:
+      - ${DATA_ROOT}:${EEWPW_DATA_DIR}
+    ports:
+      - "${BACKEND_PORT}:8000"
+    healthcheck:
+      test: ["CMD-SHELL", "python -c \"import urllib.request;print(urllib.request.urlopen('http://127.0.0.1:8000/healthz', timeout=2).status)\""]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+    restart: unless-stopped
+
+  frontend:
+    image: ${FRONTEND_IMAGE}:${FRONTEND_TAG}
+    container_name: eewpw-dashboard
+    depends_on:
+      backend:
+        condition: service_healthy
+    environment:
+      BACKEND_BASE_URL: "${BACKEND_BASE_URL}"
+      EEWPW_BACKEND_BASE: "${EEWPW_BACKEND_BASE}"
+      HOST: "0.0.0.0"
+      PORT: "${FRONTEND_PORT}"
+      DASH_DEBUG_MODE: "false"
+      APP_TITLE: "EEW Performance Viewer"
+    ports:
+      - "${FRONTEND_PORT}:8050"
+    restart: unless-stopped
