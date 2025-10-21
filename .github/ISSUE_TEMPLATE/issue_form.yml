@@ -3,6 +3,13 @@ description: Report a bug, request a feature, or suggest an enhancement.
 title: "[Issue] <short summary>"
 labels: []
 body:
+  - type: markdown
+    attributes:
+      value: |
+        **Title format:**  
+        Use short, descriptive titles with a component tag.  
+        Example: `[map view] Earthquakes are not shown`
+  
   - type: dropdown
     id: issue_type
     attributes:
@@ -13,14 +20,6 @@ body:
         - Enhancement
         - Documentation
         - Question
-    validations:
-      required: true
-
-  - type: textarea
-    id: title
-    attributes:
-      label: Title
-      description: "Briefly describe the issue or idea. Use bracket-style tags to identify the main component, e.g. [map view] Earthquakes are not shown."
     validations:
       required: true
 
