@@ -102,12 +102,12 @@ Reload your app by refreshing your browser, if the dashboard was already open.
 ### Upload your data
 #### [⬆Back to top](#viewing-playback-performance-with-eewpw)
 
-When you connect to the dashboard via your browser (`http://127.0.0.1:8050/` by default), the user interface starts at the `Load` tab with `Upload` and `Refresh list from remote` button. A dropdown widget will list all the files that are previously uploaded. 
+When you connect to the dashboard via your browser (`http://127.0.0.1:8050/` by default), the user interface starts at the `Load` tab with `Upload` and `Refresh list from remote` button. A dropdown widget lists all previous uploads.
 
-Click on the `Upload` for new files (check the dropdown widget first). You can use the `Refresh list from remote` button to re-fill the dropdown.
+**For new files**: Click on the `Upload` (check the dropdown widget first). You can use the `Refresh list from remote` to re-fill the dropdown.
 
-> **Warning:** You should not upload the same file each time you work on a playback. Once a file is uploaded, it will be stored on the server side (on the locally mounted volume on host machine). Multiple uploads of the same content will consume the disk space.
+**Caution:** You should not upload the same file each time you work on a specific playback. Once a file is uploaded, it will be stored on the server side (on the locally mounted volume on host machine). Multiple uploads of the same content will only consume the disk space.
 
-After the a new upload (or load for pre-existing files), open the `View` panel at the top to visualize the playback performance metrics.
+After a new upload (or load for pre-existing files), open the `View` panel at the top to visualize the playback performance metrics.
 
 ---
