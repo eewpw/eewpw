@@ -1,5 +1,5 @@
-name: General Issue
-description: Report a bug, request a feature, or suggest an enhancement.
+name: Issues Form
+description: Use the template to report a bug, request a feature, or suggest an enhancement.
 title: "[Issue] <short summary>"
 labels: []
 body:
