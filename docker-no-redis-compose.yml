@@ -37,7 +37,7 @@ services:
       PORT: "${FRONTEND_PORT}"
       DASH_DEBUG_MODE: "false"
       APP_TITLE: "EEW Performance Viewer"
-      EEWPW_CONFIG_PATH: /app/data/eewpw-config.toml
+      EEWPW_CONFIG_PATH: /app/client/eewpw-config.toml
     ports:
       - "${FRONTEND_PORT}:8050"
     restart: unless-stopped
