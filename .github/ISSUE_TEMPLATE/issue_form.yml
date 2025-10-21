@@ -28,6 +28,8 @@ body:
     attributes:
       label: Details
       description: Add any relevant details, steps to reproduce, or proposed solution.
+    validations:
+      allow_uploads: false
 
   - type: textarea
     id: logs
@@ -35,6 +37,8 @@ body:
       label: Logs / Screenshots (optional)
       description: Include any logs, errors, or screenshots that help understand the issue.
       render: shell
+    validations:
+      allow_uploads: true
 
   - type: input
     id: environment
