@@ -1,103 +1,44 @@
-name: 📝 General Issue
-description: Report a bug, request a feature, suggest an enhancement, or ask a question.
+name: General Issue
+description: Report a bug, request a feature, or suggest an enhancement.
 title: "[Issue] <short summary>"
 labels: []
 body:
-  - type: markdown
-    attributes:
-      value: |
-        Thank you for contributing to **EEWPW**!  
-        Please use this form to report a **bug**, request a **feature**, suggest an **enhancement**, or ask a **question**.  
-        Fill out as much detail as possible to help us understand and address your issue.
-
   - type: dropdown
     id: issue_type
     attributes:
-      label: Issue Type
-      description: What kind of issue are you reporting?
+      label: Type
       options:
-        - 🐞 Bug Report
-        - 🚀 Feature Request
-        - 💡 Enhancement
-        - 📚 Documentation
-        - ❓ Question
+        - Bug
+        - Feature Request
+        - Enhancement
+        - Documentation
+        - Question
     validations:
       required: true
 
   - type: textarea
-    id: summary
+    id: title
     attributes:
-      label: Summary
-      description: Provide a short summary of your issue or idea.
-      placeholder: Example — Dashboard fails to load configuration, or add profile editing option.
+      label: Title
+      description: "Briefly describe the issue or idea. Use bracket-style tags to identify the main component, e.g. [map view] Earthquakes are not shown."
     validations:
       required: true
 
   - type: textarea
     id: details
     attributes:
-      label: Details / Description
-      description: Describe your issue, suggestion, or request in detail.
-      placeholder: Explain what happens, why it's important, or what you'd like to see improved.
-
-  - type: textarea
-    id: steps
-    attributes:
-      label: Steps to Reproduce (for bugs)
-      description: How can we reproduce the problem? (Skip if not applicable.)
-      placeholder: |
-        1. Start the Docker stack
-        2. Open the dashboard
-        3. Observe missing configuration load
-
-  - type: textarea
-    id: expected
-    attributes:
-      label: Expected Behavior / Desired Outcome
-      description: What did you expect to happen or what should be added?
-      placeholder: The dashboard should load and display available configuration profiles.
+      label: Details
+      description: Add any relevant details, steps to reproduce, or proposed solution.
 
   - type: textarea
     id: logs
     attributes:
-      label: Logs / Screenshots
-      description: Attach logs, error messages, or screenshots relevant to the issue.
+      label: Logs / Screenshots (optional)
+      description: Include any logs, errors, or screenshots that help understand the issue.
       render: shell
-      placeholder: |
-        Traceback (most recent call last):
-          File "app.py", line 42, in <module>
-            raise ValueError("Invalid configuration path")
-
-  - type: dropdown
-    id: component
-    attributes:
-      label: Affected Component
-      description: Which part of EEWPW is this related to?
-      options:
-        - Frontend (Dashboard)
-        - Backend (API)
-        - Deployment (Docker / Compose)
-        - Documentation
-        - Other
-    validations:
-      required: true
-
-  - type: input
-    id: version
-    attributes:
-      label: EEWPW Version
-      description: Which version or Git commit are you using?
-      placeholder: e.g., 0.3.1 or master@abc123
 
   - type: input
     id: environment
     attributes:
-      label: Environment
-      description: OS, browser, and deployment type.
-      placeholder: e.g., macOS 15.6, Chrome 129, Docker Compose
-
-  - type: textarea
-    id: additional
-    attributes:
-      label: Additional Context
-      description: Add any other notes, ideas, or configuration details.
+      label: Environment (optional)
+      description: OS, browser, or deployment type (e.g., macOS, Docker, etc.)
