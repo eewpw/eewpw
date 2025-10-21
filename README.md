@@ -12,6 +12,10 @@ This repository provides a **turn‑key Docker Compose deployment** for the EEW 
   1) **With bundled Redis** (`docker-compose.yml`)
   2) **Using an external Redis** (`docker-no-redis-compose.yml`), e.g., your own local/remote Redis.
 
+> **With bundled Redis**: This is the default mode for all scripts. In this mode, we pull both dashboard and backend containers, plus the Redis container. Probably, this mode is the case for most of the end users. 
+
+> **Using an external Redis**: In this mode, you already had the redis container (`eewpw-redis`). This is more practical especially at the development stage. Then runtime environment is slightly adjusted to avoid URL overrides and permission related crashes. In this mode, scripts should be specifically notified which docker-compose is used.
+
 > For platform and architecture compatibility, see [Appendix: Platform Compatibility](#platform-compatibility).
 
 ---
@@ -19,13 +23,12 @@ This repository provides a **turn‑key Docker Compose deployment** for the EEW 
 ## Table of Contents
 - [Prerequisites](#prerequisites)
 - [Installation](#installation)
-- [Manage `eewpw-config.toml`](#manage-eewpw-configtoml)
-- [Sharing external datasets (MMIs, ruptures, catalogs)](#sharing-external-datasets-mmis-ruptures-catalogs)
 - [Starting & Stopping](#starting--stopping)
 - [Using the Dashboard](#using-the-dashboard)
 - [Update Images / Upgrade](#update-images--upgrade)
 - [Troubleshooting](#troubleshooting)
 - [Appendix](#appendix)
+- [Next: Viewing EEW playbacks](#next-viewing-eww-playbacks)
 
 ---
 
@@ -33,8 +36,9 @@ This repository provides a **turn‑key Docker Compose deployment** for the EEW 
 #### [⬆Back to top](#eewpw-deployment)
 
 - **Docker** and **Docker Compose plugin** (Docker Desktop on macOS/Windows; Docker Engine + Compose on Linux)
-- Possibly, network access to **GHCR** (GitHub Container Registry) to pull images
-> **Note:** Our containers are public. If at some point they are temporarily made private, you will receive `access error` while building the application. If that's case, login to GitHub Container Registery before proceeding: `docker login ghcr.io`. You will need to use your GitHub username and personal access token.
+- If enforced by the admins, network access to **GHCR** (GitHub Container Registry) to pull images
+
+Our containers are public. If at some point they are temporarily made private, you will receive `access error` while building the application. If that's case, login to GitHub Container Registery before proceeding: `docker login ghcr.io` with your GitHub username and personal access token.
 
 ---
 
@@ -42,13 +46,13 @@ This repository provides a **turn‑key Docker Compose deployment** for the EEW 
 #### [⬆Back to top](#eewpw-deployment)
 
 
-1. Clone this repo and create your environment file:
+1. We start with cloning this repo:
    ```bash
    git clone https://github.com/eewpw/eewpw.git
    cd eewpw
    ```
 
-2. Prepare environment file
+2. Then, we prepare environment file
    ```bash
    cp .env.example .env
    ```
@@ -60,77 +64,43 @@ This repository provides a **turn‑key Docker Compose deployment** for the EEW 
    * You are sure you have not installed the Redis before: Comment out the `REDIS_URL` line.
 
 
-3. To start the container stack, use the ([see Appendix → make](#the-make-tool)):
+3. To start the container stack, we recommend to use the ([see Appendix → make](#the-make-tool)):
 
    This step also depends on whether you have Redis or not. Please see the [make](#the-make-tool) tool.
    ```bash
    make up
    ```
 
-4. Run the smoke test:
+4. Finally, run the smoke test:
    ```bash
    make smoke
    ```
-   See [make tool](#the-make-tool) for all options.
+   See [make tool](#the-make-tool) for all options. The expected output is:
+   
+   ```console
+      $ make smoke
+      ./scripts/smoke.sh
+      [SMOKE] Backend /healthz 
+      OK (200): {"ok":true,"redis_ok":true,"redis_detail":"PONG"}
+      [SMOKE] Backend /status (optional)
+      Skipped: /status not implemented (404)
+      [SMOKE] Frontend reachability
+      OK (200)
+      [OK] Smoke tests passed.
+   ```
 
-5. Access the dashboard: 
-On your browser, go to `http://localhost:${FRONTEND_PORT}` (defaults to **http://localhost:8050**).
+5. Access the dashboard: Dashboard should be ready after this. On your browser, go to `http://localhost:${FRONTEND_PORT}` (defaults to **http://localhost:8050**). 
 
 
----
+**[Next chapter](docs/PLAYBACKS.md) will explain how to set up the dashboard for viewing the EEW performance for a playback. Please continue to read first to find out about managing the EEWPW tools and its environment.**
 
-## Manage `eewpw-config.toml`
-#### [⬆Back to top](#eewpw-deployment)
-
-Use the helper script to manage a config file **inside the frontend container** at `/app/client/eewpw-config.toml`.
-
-```bash
-# View current config (uses docker-compose.yml by default)
-scripts/manage-config.sh view
-
-# Using the no-redis compose file
-EEWPW_COMPOSE_FILE=docker-no-redis-compose.yml scripts/manage-config.sh view
-
-# Copy a local TOML into the container
-scripts/manage-config.sh copy ./my-configs/eewpw-config.toml
-
-# Append a single line
-scripts/manage-config.sh append 'max_items = 200'
-
-# Append contents of another file
-scripts/manage-config.sh append -f ./extra-settings.toml
-
-# Delete the config
-scripts/manage-config.sh delete
-```
-
-You can override defaults via env vars: `EEWPW_COMPOSE_FILE` (default `docker-compose.yml`), `EEWPW_SERVICE=frontend`, `EEWPW_CONFIG_PATH=/app/client/eewpw-config.toml`.
-
-For a detailed description of all configuration fields and examples, see [docs/README_CONFIG.md](docs/README_CONFIG.md).
-
----
-
-## Sharing external datasets (MMIs, ruptures, catalogs)
-#### [⬆Back to top](#eewpw-deployment)
-
-To make host files (e.g., MMIs, ruptures, earthquake catalogs) visible to the dashboard, place them under the shared data directory and use those paths in your config.
-
-**Convention:** use `./data/auxdata` on the host. The compose files mount this folder into the frontend at `/app/client/auxdata` (read‑only).
-
-Example entries in `eewpw-config.toml`:
-
-```toml
-earthquake_catalog = "auxdata/combined_earthquake_catalog.csv"
-external_mmi_files = "auxdata/external_mmi/cont_mmi.json"
-external_rupture_files = "auxdata/ruptures/rupture1.json; auxdata/ruptures/rupture2.json"
-```
-
-> **Important**: `auxdata/...` paths are relative to the dashboard app and resolve to the mounted `/app/client/auxdata` inside the container. The same files live on your host under `./data/auxdata`.
 
 ---
 
 ## Starting & Stopping
 #### [⬆Back to top](#eewpw-deployment)
+
+We recommend to use our [make tool](#the-make-tool) for managing the repo environment. However, you can also use the native `docker compose` commands.
 
 **With bundled Redis** (default compose):
 ```bash
@@ -159,26 +129,28 @@ docker compose restart backend
 > ```
 ---
 
-## Using the Dashboard
-#### [⬆Back to top](#eewpw-deployment)
-
-- Open: `http://localhost:${FRONTEND_PORT}` (default: **8050**).
-- Upload files and run analyses. The dashboard calls the backend at `BACKEND_BASE_URL`.
-- Persistent data created by the backend is stored under `${DATA_ROOT}` on the host (default `./data`).
-
----
-
 ## Update Images / Upgrade
 #### [⬆Back to top](#eewpw-deployment)
 
-Pull the latest images and restart:
+When there is an update to any of the repositories, you should pull the latest images and restart.
+
+First, update the `eewpw` main repository:
 ```bash
-make pull
-make up
-make smoke
+cd eewpw
+git pull
 ```
 
-If you’re tracking immutable tags (SHAs), update `BACKEND_TAG` / `FRONTEND_TAG` in `.env` accordingly.
+Then, update and restart the containers:
+```bash
+# Shutdown running containers
+make down
+# Pull the latest versions
+make pull
+# Start them up again
+make up
+# Run the smoke tests
+make smoke
+```
 
 ---
 
@@ -323,3 +295,10 @@ make down COMPOSE_FILE=docker-no-redis-compose.yml
 ```
 
 This variable works for all Make targets (`up`, `down`, `pull`, `logs`, `ps`, `smoke`, etc.).
+
+## Next: Viewing EWW playbacks
+
+So far, this README has covered how to set up and manage the EEWPW containers and codebase. The next step is to explore how to view and analyze playback performances through the dashboard.
+See the detailed guide for how to [view playback performances](docs/PLAYBACKS.md).
+
+---
