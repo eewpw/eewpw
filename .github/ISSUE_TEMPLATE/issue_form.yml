@@ -27,18 +27,16 @@ body:
     id: details
     attributes:
       label: Details
-      description: Add any relevant details, steps to reproduce, or proposed solution.
-    validations:
-      allow_uploads: false
+      description: "Add relevant details and steps to reproduce. Do not upload files here — use the Logs / Screenshots section below for attachments."
 
   - type: textarea
     id: logs
     attributes:
       label: Logs / Screenshots (optional)
-      description: Include any logs, errors, or screenshots that help understand the issue.
+      description: "Attach files here (screenshots, screen recordings) or paste logs/tracebacks."
       render: shell
     validations:
-      allow_uploads: true
+      required: false
 
   - type: input
     id: environment
