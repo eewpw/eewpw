@@ -1,7 +1,7 @@
 # EEWPW Deployment
 
-[![Backend Build](https://github.com/eewpw/eewpw-backend/actions/workflows/docker.yml/badge.svg?branch=master)](https://github.com/eewpw/eewpw-backend/actions/workflows/docker.yml)
-[![Frontend Build](https://github.com/eewpw/eewpw-dashboard/actions/workflows/docker.yml/badge.svg?branch=master)](https://github.com/eewpw/eewpw-dashboard/actions/workflows/docker.yml)
+[![Backend Build](https://github.com/eewpw/eewpw-backend/actions/workflows/docker-backend.yml/badge.svg?branch=master)](https://github.com/eewpw/eewpw-backend/actions/workflows/docker.yml)
+[![Frontend Build](https://github.com/eewpw/eewpw-dashboard/actions/workflows/docker-frontend.yml/badge.svg?branch=master)](https://github.com/eewpw/eewpw-dashboard/actions/workflows/docker.yml)
 
 ## Summary
 This repository provides a **turn‑key Docker Compose deployment** for the EEW Performance Viewer (EEWPW):
