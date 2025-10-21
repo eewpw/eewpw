@@ -38,7 +38,7 @@ This repository provides a **turn‑key Docker Compose deployment** for the EEW 
 - **Docker** and **Docker Compose plugin** (Docker Desktop on macOS/Windows; Docker Engine + Compose on Linux)
 - If enforced by the admins, network access to **GHCR** (GitHub Container Registry) to pull images
 
-Our containers are public. If at some point they are temporarily made private, you will receive `access error` while building the application. If that's case, login to GitHub Container Registery before proceeding: `docker login ghcr.io` with your GitHub username and personal access token.
+*Our containers are public. If at some point they are temporarily made private, you will receive `access error` while building the application. If that's case, login to GitHub Container Registery before proceeding: `docker login ghcr.io` with your GitHub username and personal access token.*
 
 ---
 
@@ -46,13 +46,13 @@ Our containers are public. If at some point they are temporarily made private, y
 #### [⬆Back to top](#eewpw-deployment)
 
 
-1. We start with cloning this repo:
+1. Clone this repo:
    ```bash
    git clone https://github.com/eewpw/eewpw.git
    cd eewpw
    ```
 
-2. Then, we prepare environment file
+2. Prepare the environment file
    ```bash
    cp .env.example .env
    ```
