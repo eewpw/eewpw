@@ -7,6 +7,7 @@ This document will walk you through the steps needed to prepare your working env
 ## Table of Contents
 - [Manage `eewpw-config.toml`](#manage-eewpw-configtoml)
 - [Sharing external datasets (MMIs, ruptures, catalogs)](#sharing-external-datasets-mmis-ruptures-catalogs)
+- [Uploading new data](#upload-your-data)
 
 ---
 
@@ -54,7 +55,8 @@ Then verify with:
 # View current config (uses docker-compose.yml by default)
 scripts/manage-config.sh view
 
-# Using the no-redis compose file
+# Using the no-redis compose file (if paths are different)
+# The redis-mode command should work out of box as well.
 EEWPW_COMPOSE_FILE=docker-no-redis-compose.yml scripts/manage-config.sh view
 ```
 
@@ -94,5 +96,18 @@ cp /some/path/earthquakes_catalog.csv ./data/auxdata
 ```
 
 Reload your app by refreshing your browser, if the dashboard was already open.
+
+---
+
+### Upload your data
+#### [⬆Back to top](#viewing-playback-performance-with-eewpw)
+
+When you connect to the dashboard via your browser (`http://127.0.0.1:8050/` by default), the user interface starts at the `Load` tab with `Upload` and `Refresh list from remote` button. A dropdown widget will list all the files that are previously uploaded. 
+
+Click on the `Upload` for new files (check the dropdown widget first). You can use the `Refresh list from remote` button to re-fill the dropdown.
+
+> **Warning:** You should not upload the same file each time you work on a playback. Once a file is uploaded, it will be stored on the server side (on the locally mounted volume on host machine). Multiple uploads of the same content will consume the disk space.
+
+After the a new upload (or load for pre-existing files), open the `View` panel at the top to visualize the playback performance metrics.
 
 ---

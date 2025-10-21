@@ -3,7 +3,6 @@
 #
 # Usage:
 #   scripts/manage-config.sh copy <local_path_to_toml>
-#   scripts/manage-config.sh append "key = value"    # appends a single line
 #   scripts/manage-config.sh append -f <local_path>   # appends contents of file
 #   scripts/manage-config.sh view
 #   scripts/manage-config.sh delete
@@ -56,12 +55,6 @@ copy_config() {
   echo "[OK] Copied."
 }
 
-append_line() {
-  local line="$1"
-  echo "[INFO] Appending one line to $EEWPW_SERVICE:$EEWPW_CONFIG_PATH"
-  docker compose -f "$ROOT_DIR/$EEWPW_COMPOSE_FILE" exec -T "$EEWPW_SERVICE" sh -lc "mkdir -p $(dirname "$EEWPW_CONFIG_PATH") && touch '$EEWPW_CONFIG_PATH' && printf '%s\n' \"$(printf '%s' "$line" | sed 's/\\/\\\\/g; s/\"/\\\"/g')\" >> '$EEWPW_CONFIG_PATH'"
-  echo "[OK] Appended."
-}
 
 append_file() {
   local src="$1"
@@ -92,10 +85,8 @@ main() {
     append)
       if [[ $# -eq 2 && "$1" == "-f" ]]; then
         container_up; append_file "$2";
-      elif [[ $# -ge 1 ]]; then
-        container_up; append_line "$*";
       else
-        echo "Usage: $0 append \"key = value\"  OR  $0 append -f <file>" >&2; exit 1;
+        echo "Usage: $0 append -f <file>" >&2; exit 1;
       fi;;
     view)
       container_up; view_config;;
