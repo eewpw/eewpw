@@ -28,7 +28,7 @@ This repository provides a **turn‑key Docker Compose deployment** for the EEW 
 - [Update Images / Upgrade](#update-images--upgrade)
 - [Troubleshooting](#troubleshooting)
 - [Appendix](#appendix)
-- [Next: Viewing EEW playbacks](#next-viewing-eww-playbacks)
+- [Next: Viewing EEW playbacks](docs/PLAYBACKS.md)
 
 ---
 
