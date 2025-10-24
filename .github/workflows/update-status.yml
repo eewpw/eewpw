@@ -2,11 +2,11 @@ name: Publish image update status
 
 on:
   schedule:
-    - cron: "*/15 * * * *"   # every 15 min
-  workflow_dispatch: {}       # allow manual run
+    - cron: "*/15 * * * *"
+  workflow_dispatch: {}
 
 permissions:
-  contents: write             # needed to commit update.json
+  contents: write
 
 jobs:
   status:
@@ -14,32 +14,40 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Install jq
+        run: sudo apt-get update && sudo apt-get install -y jq
+
       - name: Get backend digest from GHCR
         id: be
+        env:
+          REPO: eewpw/eewpw-backend
+          TAG: master          # <-- change to the tag you actually publish (e.g. main/latest) if needed
         run: |
           set -e
-          REPO="eewpw/eewpw-backend"; TAG="master"
           TOKEN=$(curl -fsSL "https://ghcr.io/token?service=ghcr.io&scope=repository:${REPO}:pull" | jq -r .token)
-          DIGEST=$(curl -fsSLI -H "Authorization: Bearer $TOKEN" \
+          DIGEST=$(curl -fsSLI \
+            -H "Authorization: Bearer $TOKEN" \
             -H "Accept: application/vnd.oci.image.index.v1+json, application/vnd.docker.distribution.manifest.v2+json" \
             "https://ghcr.io/v2/${REPO}/manifests/${TAG}" \
             | tr -d '\r' | awk '/^Docker-Content-Digest:/ {print $2}')
           echo "digest=$DIGEST" >> "$GITHUB_OUTPUT"
+          test -n "$DIGEST" || (echo "No backend digest for ${REPO}:${TAG}" && exit 1)
 
       - name: Get frontend digest from GHCR
         id: fe
+        env:
+          REPO: eewpw/eewpw-dashboard
+          TAG: master          # <-- change if needed
         run: |
           set -e
-          REPO="eewpw/eewpw-dashboard"; TAG="master"
           TOKEN=$(curl -fsSL "https://ghcr.io/token?service=ghcr.io&scope=repository:${REPO}:pull" | jq -r .token)
-          DIGEST=$(curl -fsSLI -H "Authorization: Bearer $TOKEN" \
+          DIGEST=$(curl -fsSLI \
+            -H "Authorization: Bearer $TOKEN" \
             -H "Accept: application/vnd.oci.image.index.v1+json, application/vnd.docker.distribution.manifest.v2+json" \
             "https://ghcr.io/v2/${REPO}/manifests/${TAG}" \
             | tr -d '\r' | awk '/^Docker-Content-Digest:/ {print $2}')
           echo "digest=$DIGEST" >> "$GITHUB_OUTPUT"
-
-      - name: Install jq
-        run: sudo apt-get update && sudo apt-get install -y jq
+          test -n "$DIGEST" || (echo "No frontend digest for ${REPO}:${TAG}" && exit 1)
 
       - name: Compute new status JSON
         id: buildjson
@@ -48,26 +56,28 @@ jobs:
           NEW_FE="${{ steps.fe.outputs.digest }}"
           TS="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
 
-          # Read previous values if file exists
           if [ -f update.json ]; then
+            FILE_EXISTS=true
             OLD_BE=$(jq -r '.backend.digest // empty' update.json)
             OLD_FE=$(jq -r '.frontend.digest // empty' update.json)
           else
+            FILE_EXISTS=false
             OLD_BE=""
             OLD_FE=""
           fi
 
+          echo "file_exists=$FILE_EXISTS" >> $GITHUB_OUTPUT
           echo "old_be=$OLD_BE" >> $GITHUB_OUTPUT
           echo "old_fe=$OLD_FE" >> $GITHUB_OUTPUT
           echo "new_be=$NEW_BE" >> $GITHUB_OUTPUT
           echo "new_fe=$NEW_FE" >> $GITHUB_OUTPUT
 
-          # Prepare the new content (but don't write it yet)
           jq -n --arg be "$NEW_BE" --arg fe "$NEW_FE" --arg ts "$TS" \
             '{backend:{digest:$be}, frontend:{digest:$fe}, updated:$ts}' > update.new.json
 
-      - name: Update file only if digests changed
-        if: steps.buildjson.outputs.old_be != steps.buildjson.outputs.new_be || steps.buildjson.outputs.old_fe != steps.buildjson.outputs.new_fe
+      - name: Create or update file
+        # create on first run OR when any digest changed
+        if: steps.buildjson.outputs.file_exists == 'false' || steps.buildjson.outputs.old_be != steps.buildjson.outputs.new_be || steps.buildjson.outputs.old_fe != steps.buildjson.outputs.new_fe
         run: |
           mv update.new.json update.json
           git config user.name "github-actions"
@@ -77,5 +87,5 @@ jobs:
           git push
 
       - name: Skip update (no digest change)
-        if: steps.buildjson.outputs.old_be == steps.buildjson.outputs.new_be && steps.buildjson.outputs.old_fe == steps.buildjson.outputs.new_fe
+        if: steps.buildjson.outputs.file_exists == 'true' && steps.buildjson.outputs.old_be == steps.buildjson.outputs.new_be && steps.buildjson.outputs.old_fe == steps.buildjson.outputs.new_fe
         run: echo "No digest change; not committing."
