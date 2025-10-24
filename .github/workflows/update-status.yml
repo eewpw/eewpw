@@ -17,37 +17,38 @@ jobs:
       - name: Install jq
         run: sudo apt-get update && sudo apt-get install -y jq
 
+      # --- GHCR digests (public images -> anonymous token is enough) ---
       - name: Get backend digest from GHCR
         id: be
         env:
           REPO: eewpw/eewpw-backend
-          TAG: latest        # <-- INFO: change if needed          
         run: |
           set -e
           TOKEN=$(curl -fsSL "https://ghcr.io/token?service=ghcr.io&scope=repository:${REPO}:pull" | jq -r .token)
-          DIGEST=$(curl -fsSLI \
-            -H "Authorization: Bearer $TOKEN" \
-            -H "Accept: application/vnd.oci.image.index.v1+json, application/vnd.docker.distribution.manifest.v2+json" \
-            "https://ghcr.io/v2/${REPO}/manifests/${TAG}" \
-            | tr -d '\r' | awk '/^Docker-Content-Digest:/ {print $2}')
+          try() { TAG="$1"; 
+            curl -fsSLI -H "Authorization: Bearer $TOKEN" \
+              -H "Accept: application/vnd.oci.image.index.v1+json, application/vnd.docker.distribution.manifest.v2+json" \
+              "https://ghcr.io/v2/${REPO}/manifests/${TAG}" \
+              | tr -d '\r' | awk '/^Docker-Content-Digest:/ {print $2}'; }
+          DIGEST=$(try master || true); [ -z "$DIGEST" ] && DIGEST=$(try main || true); [ -z "$DIGEST" ] && DIGEST=$(try latest || true)
+          test -n "$DIGEST" || (echo "No backend digest (tried master/main/latest)"; exit 1)
           echo "digest=$DIGEST" >> "$GITHUB_OUTPUT"
-          test -n "$DIGEST" || (echo "No backend digest for ${REPO}:${TAG}" && exit 1)
 
       - name: Get frontend digest from GHCR
         id: fe
         env:
           REPO: eewpw/eewpw-dashboard
-          TAG: latest          # <-- INFO: change if needed
         run: |
           set -e
           TOKEN=$(curl -fsSL "https://ghcr.io/token?service=ghcr.io&scope=repository:${REPO}:pull" | jq -r .token)
-          DIGEST=$(curl -fsSLI \
-            -H "Authorization: Bearer $TOKEN" \
-            -H "Accept: application/vnd.oci.image.index.v1+json, application/vnd.docker.distribution.manifest.v2+json" \
-            "https://ghcr.io/v2/${REPO}/manifests/${TAG}" \
-            | tr -d '\r' | awk '/^Docker-Content-Digest:/ {print $2}')
+          try() { TAG="$1"; 
+            curl -fsSLI -H "Authorization: Bearer $TOKEN" \
+              -H "Accept: application/vnd.oci.image.index.v1+json, application/vnd.docker.distribution.manifest.v2+json" \
+              "https://ghcr.io/v2/${REPO}/manifests/${TAG}" \
+              | tr -d '\r' | awk '/^Docker-Content-Digest:/ {print $2}'; }
+          DIGEST=$(try master || true); [ -z "$DIGEST" ] && DIGEST=$(try main || true); [ -z "$DIGEST" ] && DIGEST=$(try latest || true)
+          test -n "$DIGEST" || (echo "No frontend digest (tried master/main/latest)"; exit 1)
           echo "digest=$DIGEST" >> "$GITHUB_OUTPUT"
-          test -n "$DIGEST" || (echo "No frontend digest for ${REPO}:${TAG}" && exit 1)
 
       - name: Compute new status JSON
         id: buildjson
@@ -55,28 +56,23 @@ jobs:
           NEW_BE="${{ steps.be.outputs.digest }}"
           NEW_FE="${{ steps.fe.outputs.digest }}"
           TS="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
-
           if [ -f update.json ]; then
             FILE_EXISTS=true
             OLD_BE=$(jq -r '.backend.digest // empty' update.json)
             OLD_FE=$(jq -r '.frontend.digest // empty' update.json)
           else
             FILE_EXISTS=false
-            OLD_BE=""
-            OLD_FE=""
+            OLD_BE=""; OLD_FE=""
           fi
-
           echo "file_exists=$FILE_EXISTS" >> $GITHUB_OUTPUT
           echo "old_be=$OLD_BE" >> $GITHUB_OUTPUT
           echo "old_fe=$OLD_FE" >> $GITHUB_OUTPUT
           echo "new_be=$NEW_BE" >> $GITHUB_OUTPUT
           echo "new_fe=$NEW_FE" >> $GITHUB_OUTPUT
-
           jq -n --arg be "$NEW_BE" --arg fe "$NEW_FE" --arg ts "$TS" \
             '{backend:{digest:$be}, frontend:{digest:$fe}, updated:$ts}' > update.new.json
 
       - name: Create or update file
-        # create on first run OR when any digest changed
         if: steps.buildjson.outputs.file_exists == 'false' || steps.buildjson.outputs.old_be != steps.buildjson.outputs.new_be || steps.buildjson.outputs.old_fe != steps.buildjson.outputs.new_fe
         run: |
           mv update.new.json update.json
@@ -89,3 +85,4 @@ jobs:
       - name: Skip update (no digest change)
         if: steps.buildjson.outputs.file_exists == 'true' && steps.buildjson.outputs.old_be == steps.buildjson.outputs.new_be && steps.buildjson.outputs.old_fe == steps.buildjson.outputs.new_fe
         run: echo "No digest change; not committing."
+        
