@@ -24,16 +24,34 @@ jobs:
           REPO: eewpw/eewpw-backend
         run: |
           set -e
+          # Anonymous token (works for public images)
           TOKEN=$(curl -fsSL "https://ghcr.io/token?service=ghcr.io&scope=repository:${REPO}:pull" | jq -r .token)
-          try() { TAG="$1"; 
-            curl -fsSLI -H "Authorization: Bearer $TOKEN" \
-              -H "Accept: application/vnd.oci.image.index.v1+json, application/vnd.docker.distribution.manifest.v2+json" \
-              "https://ghcr.io/v2/${REPO}/manifests/${TAG}" \
-              | tr -d '\r' | awk '/^Docker-Content-Digest:/ {print $2}'; }
-          DIGEST=$(try master || true); [ -z "$DIGEST" ] && DIGEST=$(try main || true); [ -z "$DIGEST" ] && DIGEST=$(try latest || true)
-          test -n "$DIGEST" || (echo "No backend digest (tried master/main/latest)"; exit 1)
+          # 1) List tags (diagnostic)
+          TAGS_JSON=$(curl -fsSL -H "Authorization: Bearer $TOKEN" "https://ghcr.io/v2/${REPO}/tags/list")
+          echo "Backend tags JSON: $TAGS_JSON"
+          # 2) Pick a tag
+          PREF=$(echo "$TAGS_JSON" | jq -r '.tags // [] | map(select(. == "master" or . == "main" or . == "latest")) | .[0]')
+          if [ -z "$PREF" ] || [ "$PREF" = "null" ]; then
+            # fallback to first available tag, if any
+            PREF=$(echo "$TAGS_JSON" | jq -r '.tags // [] | .[0]')
+          fi
+          if [ -z "$PREF" ] || [ "$PREF" = "null" ]; then
+            echo "No tags found for ${REPO}. Check GHCR package visibility and name."; exit 1
+          fi
+          echo "Selected backend tag: $PREF"
+          # 3) Fetch digest
+          HEADERS=$(mktemp)
+          HTTP=$(curl -s -o /dev/null -w "%{http_code}" -I \
+            -H "Authorization: Bearer $TOKEN" \
+            -H "Accept: application/vnd.oci.image.index.v1+json, application/vnd.docker.distribution.manifest.v2+json" \
+            -D "$HEADERS" "https://ghcr.io/v2/${REPO}/manifests/${PREF}")
+          echo "Backend manifest HTTP: $HTTP"
+          DIGEST=$(grep -i '^Docker-Content-Digest:' "$HEADERS" | awk '{print $2}' | tr -d '\r')
+          echo "Backend digest: $DIGEST"
+          test -n "$DIGEST" || (echo "No backend digest for ${REPO}:${PREF}"; exit 1)
+          echo "tag=$PREF" >> "$GITHUB_OUTPUT"
           echo "digest=$DIGEST" >> "$GITHUB_OUTPUT"
-
+          
       - name: Get frontend digest from GHCR
         id: fe
         env:
@@ -41,15 +59,28 @@ jobs:
         run: |
           set -e
           TOKEN=$(curl -fsSL "https://ghcr.io/token?service=ghcr.io&scope=repository:${REPO}:pull" | jq -r .token)
-          try() { TAG="$1"; 
-            curl -fsSLI -H "Authorization: Bearer $TOKEN" \
-              -H "Accept: application/vnd.oci.image.index.v1+json, application/vnd.docker.distribution.manifest.v2+json" \
-              "https://ghcr.io/v2/${REPO}/manifests/${TAG}" \
-              | tr -d '\r' | awk '/^Docker-Content-Digest:/ {print $2}'; }
-          DIGEST=$(try master || true); [ -z "$DIGEST" ] && DIGEST=$(try main || true); [ -z "$DIGEST" ] && DIGEST=$(try latest || true)
-          test -n "$DIGEST" || (echo "No frontend digest (tried master/main/latest)"; exit 1)
+          TAGS_JSON=$(curl -fsSL -H "Authorization: Bearer $TOKEN" "https://ghcr.io/v2/${REPO}/tags/list")
+          echo "Frontend tags JSON: $TAGS_JSON"
+          PREF=$(echo "$TAGS_JSON" | jq -r '.tags // [] | map(select(. == "master" or . == "main" or . == "latest")) | .[0]')
+          if [ -z "$PREF" ] || [ "$PREF" = "null" ]; then
+            PREF=$(echo "$TAGS_JSON" | jq -r '.tags // [] | .[0]')
+          fi
+          if [ -z "$PREF" ] || [ "$PREF" = "null" ]; then
+            echo "No tags found for ${REPO}. Check GHCR package visibility and name."; exit 1
+          fi
+          echo "Selected frontend tag: $PREF"
+          HEADERS=$(mktemp)
+          HTTP=$(curl -s -o /dev/null -w "%{http_code}" -I \
+            -H "Authorization: Bearer $TOKEN" \
+            -H "Accept: application/vnd.oci.image.index.v1+json, application/vnd.docker.distribution.manifest.v2+json" \
+            -D "$HEADERS" "https://ghcr.io/v2/${REPO}/manifests/${PREF}")
+          echo "Frontend manifest HTTP: $HTTP"
+          DIGEST=$(grep -i '^Docker-Content-Digest:' "$HEADERS" | awk '{print $2}' | tr -d '\r')
+          echo "Frontend digest: $DIGEST"
+          test -n "$DIGEST" || (echo "No frontend digest for ${REPO}:${PREF}"; exit 1)
+          echo "tag=$PREF" >> "$GITHUB_OUTPUT"
           echo "digest=$DIGEST" >> "$GITHUB_OUTPUT"
-
+          
       - name: Compute new status JSON
         id: buildjson
         run: |
@@ -85,4 +116,3 @@ jobs:
       - name: Skip update (no digest change)
         if: steps.buildjson.outputs.file_exists == 'true' && steps.buildjson.outputs.old_be == steps.buildjson.outputs.new_be && steps.buildjson.outputs.old_fe == steps.buildjson.outputs.new_fe
         run: echo "No digest change; not committing."
-        
