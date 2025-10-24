@@ -1,4 +1,37 @@
-      - name: Build update JSON
+name: Publish image update status
+
+on:
+  schedule:
+    - cron: "*/15 * * * *"   # every 15 min
+  workflow_dispatch: {}       # allow manual run
+
+permissions:
+  contents: write             # needed to commit update.json
+
+jobs:
+  status:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check backend image
+        id: be
+        uses: cloudposse/actions/docker-image-update-checker@main
+        with:
+          image: ghcr.io/eewpw/eewpw-backend
+          tag: master
+
+      - name: Check frontend image
+        id: fe
+        uses: cloudposse/actions/docker-image-update-checker@main
+        with:
+          image: ghcr.io/eewpw/eewpw-dashboard
+          tag: master
+
+      - name: Install jq
+        run: sudo apt-get update && sudo apt-get install -y jq
+
+      - name: Compute new status JSON
         id: buildjson
         run: |
           NEW_BE="${{ steps.be.outputs.digest }}"
@@ -14,7 +47,6 @@
             OLD_FE=""
           fi
 
-          # Save for next step
           echo "old_be=$OLD_BE" >> $GITHUB_OUTPUT
           echo "old_fe=$OLD_FE" >> $GITHUB_OUTPUT
           echo "new_be=$NEW_BE" >> $GITHUB_OUTPUT
@@ -31,7 +63,7 @@
           git config user.name "github-actions"
           git config user.email "actions@github.com"
           git add update.json
-          git commit -m "chore: update image digests [skip ci]"
+          git commit -m "chore: update image digests [skip ci]" || echo "no changes"
           git push
 
       - name: Skip update (no digest change)
