@@ -8,13 +8,14 @@ This repository provides a **turn‑key Docker Compose deployment** for the EEW 
 - This repository does not contain the backend or dashboard code — it orchestrates them as Docker images: the **backend API** and the **dashboard (Dash)** containers, plus optional **Redis**.
 - Centralizes configuration in a single **`.env`** file (ports, image tags, URLs, data path).
 - Offers helper scripts and Make targets for **first‑run**, **updates**, **health checks**, and **config management**.
-- Supports two runtime modes:
-  1) **With bundled Redis** (`docker-compose.yml`)
-  2) **Using an external Redis** (`docker-no-redis-compose.yml`), e.g., your own local/remote Redis.
+- Supports two runtime modes: At the development stage, having the Redis containers running is more practical for testing front and backends. Therefore, we divide the application into two modes.
+  1) **With bundled Redis** (`docker-compose.yml`) for common users.
 
-> **With bundled Redis**: This is the default mode for all scripts. In this mode, we pull both dashboard and backend containers, plus the Redis container. Probably, this mode is the case for most of the end users. 
+  This is the default mode for all scripts. In this mode, we pull both dashboard and backend containers, plus the Redis container.
+  
+  2) **Using an external Redis** (`docker-no-redis-compose.yml`), generally for developers. 
 
-> **Using an external Redis**: In this mode, you already had the redis container (`eewpw-redis`). This is more practical especially at the development stage. Then runtime environment is slightly adjusted to avoid URL overrides and permission related crashes. In this mode, scripts should be specifically notified which docker-compose is used.
+  You already have the redis container (`eewpw-redis`). The runtime environment is slightly adjusted to avoid URL overrides and permission related crashes. In this mode, scripts should be specifically notified which docker-compose is used.
 
 > For platform and architecture compatibility, see [Appendix: Platform Compatibility](#platform-compatibility).
 
@@ -24,7 +25,6 @@ This repository provides a **turn‑key Docker Compose deployment** for the EEW 
 - [Prerequisites](#prerequisites)
 - [Installation](#installation)
 - [Starting & Stopping](#starting--stopping)
-- [Using the Dashboard](#using-the-dashboard)
 - [Update Images / Upgrade](#update-images--upgrade)
 - [Troubleshooting](#troubleshooting)
 - [Appendix](#appendix)
@@ -104,17 +104,24 @@ We recommend to use our [make tool](#the-make-tool) for managing the repo enviro
 
 **With bundled Redis** (default compose):
 ```bash
-docker compose up -d           # start all
-make down                      # stop
+# With the make tool
+make up                      
+
+# With docker compose
+docker compose up -d
 ```
 
 **With external Redis** (no Redis service):
 ```bash
+make up COMPOSE_FILE=docker-no-redis-compose.yml
+
+# or
 docker compose -f docker-no-redis-compose.yml up -d
 ```
 
 **Restart a single service**:
 ```bash
+# make does not wrap restart - use docker compose
 docker compose restart backend
 ```
 
@@ -140,14 +147,25 @@ cd eewpw
 git pull
 ```
 
-Then, update and restart the containers:
+Then, update containers:
+```bash
+# With Redis 
+make update
+
+# If, You already have Redis
+make update COMPOSE_FILE=docker-no-redis-compose.yml
+
+# Then, run smoke tests
+make smoke
+```
+
+If you would like to shutdown all containers, and update:
 ```bash
 # Shutdown running containers
+# WARNING: All data copied inside the container will be lost
 make down
-# Pull the latest versions
-make pull
-# Start them up again
-make up
+# Update
+make update
 # Run the smoke tests
 make smoke
 ```

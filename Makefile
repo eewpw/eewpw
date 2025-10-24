@@ -6,11 +6,11 @@ ENV_FILE := .env
 COMPOSE_FILE ?= docker-compose.yml
 DC := docker compose -f $(COMPOSE_FILE)
 
-.PHONY: help ensure-env dirs pull up down logs ps smoke clean
+.PHONY: help ensure-env dirs pull up down update logs ps smoke clean
 
 # Display available targets and usage
 help:
-	@echo "Targets: pull, up, down, logs, ps, smoke, clean"; \
+	@echo "Targets: pull, up, down, update, logs, ps, smoke, clean"; \
 	echo "Use a different compose file by setting COMPOSE_FILE=<file>. e.g.: make up COMPOSE_FILE=docker-no-redis-compose.yml"
 
 # Ensure .env exists before running other targets
@@ -36,6 +36,11 @@ up: ensure-env dirs
 down:
 	$(DC) down
 	
+# Update containers to latest images
+update: ensure-env dirs
+	$(DC) pull
+	$(DC) up -d
+
 # Follow combined container logs (latest 200 lines)
 logs:
 	$(DC) logs -f --tail=200

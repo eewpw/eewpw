@@ -51,7 +51,7 @@ services:
       EEWPW_CONFIG_PATH: /app/client/eewpw-config.toml
     volumes:
       - ${DATA_ROOT}:${EEWPW_DATA_DIR}
-      - ${DATA_ROOT}/config/eewpw-config.toml:/app/client/eewpw-config.toml
+      - ${DATA_ROOT}/config/eewpw-config.toml:/app/client/eewpw-config.toml:ro
     ports:
       - "${FRONTEND_PORT}:8050"
     restart: unless-stopped
