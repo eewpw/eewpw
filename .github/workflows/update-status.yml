@@ -26,18 +26,16 @@ jobs:
 
       - name: Write status JSON
         run: |
-          mkdir -p public
           jq -n --arg be_dig "${{ steps.be.outputs.digest }}" \
                 --arg fe_dig "${{ steps.fe.outputs.digest }}" \
                 --arg ts "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
             '{backend:{digest:$be_dig}, frontend:{digest:$fe_dig}, updated:$ts}' \
-            > public/update.json
+            > update.json
 
-      # Commit the JSON back to the repo (default branch) OR publish to Pages
       - name: Commit update.json
         run: |
           git config user.name "github-actions"
           git config user.email "actions@github.com"
-          git add public/update.json
+          git add update.json
           git commit -m "chore: update image digests [skip ci]" || echo "no changes"
           git push
