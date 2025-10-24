@@ -1,41 +1,39 @@
-name: Publish image update status
-on:
-  schedule: [ { cron: "*/15 * * * *" } ]  # every 15 minutes
-  workflow_dispatch:
-
-jobs:
-  status:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      # Check your two images/tags
-      - name: Check backend image
-        id: be
-        uses: cloudposse/actions/docker-image-update-checker@main
-        with:
-          image: ghcr.io/eewpw/eewpw-backend
-          tag: master
-
-      - name: Check frontend image
-        id: fe
-        uses: cloudposse/actions/docker-image-update-checker@main
-        with:
-          image: ghcr.io/eewpw/eewpw-dashboard
-          tag: master
-
-      - name: Write status JSON
+      - name: Build update JSON
+        id: buildjson
         run: |
-          jq -n --arg be_dig "${{ steps.be.outputs.digest }}" \
-                --arg fe_dig "${{ steps.fe.outputs.digest }}" \
-                --arg ts "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
-            '{backend:{digest:$be_dig}, frontend:{digest:$fe_dig}, updated:$ts}' \
-            > update.json
+          NEW_BE="${{ steps.be.outputs.digest }}"
+          NEW_FE="${{ steps.fe.outputs.digest }}"
+          TS="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
 
-      - name: Commit update.json
+          # Read previous values if file exists
+          if [ -f update.json ]; then
+            OLD_BE=$(jq -r '.backend.digest // empty' update.json)
+            OLD_FE=$(jq -r '.frontend.digest // empty' update.json)
+          else
+            OLD_BE=""
+            OLD_FE=""
+          fi
+
+          # Save for next step
+          echo "old_be=$OLD_BE" >> $GITHUB_OUTPUT
+          echo "old_fe=$OLD_FE" >> $GITHUB_OUTPUT
+          echo "new_be=$NEW_BE" >> $GITHUB_OUTPUT
+          echo "new_fe=$NEW_FE" >> $GITHUB_OUTPUT
+
+          # Prepare the new content (but don't write it yet)
+          jq -n --arg be "$NEW_BE" --arg fe "$NEW_FE" --arg ts "$TS" \
+            '{backend:{digest:$be}, frontend:{digest:$fe}, updated:$ts}' > update.new.json
+
+      - name: Update file only if digests changed
+        if: steps.buildjson.outputs.old_be != steps.buildjson.outputs.new_be || steps.buildjson.outputs.old_fe != steps.buildjson.outputs.new_fe
         run: |
+          mv update.new.json update.json
           git config user.name "github-actions"
           git config user.email "actions@github.com"
           git add update.json
-          git commit -m "chore: update image digests [skip ci]" || echo "no changes"
+          git commit -m "chore: update image digests [skip ci]"
           git push
+
+      - name: Skip update (no digest change)
+        if: steps.buildjson.outputs.old_be == steps.buildjson.outputs.new_be && steps.buildjson.outputs.old_fe == steps.buildjson.outputs.new_fe
+        run: echo "No digest change; not committing."
