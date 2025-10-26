@@ -1,0 +1,9 @@
+{
+  "backend": {
+    "digest": "sha256:9410f0d900d4fde0667943a5803c6faec19dbb68741ee66d604d6c8c96ee685c"
+  },
+  "frontend": {
+    "digest": "sha256:492a3d73e0d756277d8918032c9232135e64b6b05b61c19c2d0455675cf74827"
+  },
+  "updated": "2025-10-26T19:38:04Z"
+}
