@@ -35,9 +35,10 @@ services:
       EEWPW_BACKEND_BASE: "${EEWPW_BACKEND_BASE}"
       HOST: "0.0.0.0"
       PORT: "${FRONTEND_PORT}"
-      DASH_DEBUG_MODE: "false"
+      DASH_DEBUG_MODE: "true"
       APP_TITLE: "EEW Performance Viewer"
       EEWPW_CONFIG_PATH: /app/client/eewpw-config.toml
+      EEWPW_UPDATE_STATUS_URL: ${EEWPW_UPDATE_STATUS_URL}
     volumes:
       - ${DATA_ROOT}:${EEWPW_DATA_DIR}
     ports:
