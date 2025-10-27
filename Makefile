@@ -21,8 +21,11 @@ ensure-env:
 dirs: ensure-env
 	@set -a; source .env; set +a; \
 	mkdir -p $$DATA_ROOT; \
-	mkdir -p $$DATA_ROOT/files $$DATA_ROOT/indexes $$DATA_ROOT/logs $$DATA_ROOT/auxdata $$DATA_ROOT/config; \
-	chmod -R a+rwX $$DATA_ROOT
+	install -d -m 0777 "$$DATA_ROOT/files"; \
+	install -d -m 0777 "$$DATA_ROOT/indexes"; \
+	install -d -m 0777 "$$DATA_ROOT/logs"; \
+	install -d -m 0777 "$$DATA_ROOT/auxdata"; \
+	install -d -m 0777 "$$DATA_ROOT/config";
 
 # Pull the latest images from GitHub Container Registry
 pull: ensure-env
