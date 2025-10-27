@@ -8,11 +8,19 @@ on:
 permissions:
   contents: write
 
+concurrency:
+  group: eewpw-update-status
+  cancel-in-progress: true
+
+
 jobs:
   status:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: true
 
       - name: Install jq
         run: sudo apt-get update && sudo apt-get install -y jq
@@ -81,37 +89,57 @@ jobs:
           echo "tag=$PREF" >> "$GITHUB_OUTPUT"
           echo "digest=$DIGEST" >> "$GITHUB_OUTPUT"
           
-      - name: Compute new status JSON
+      - name: Compute new status JSON (compare with status branch)
         id: buildjson
         run: |
+          set -e
           NEW_BE="${{ steps.be.outputs.digest }}"
           NEW_FE="${{ steps.fe.outputs.digest }}"
           TS="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
-          if [ -f update.json ]; then
+
+          # Try to read prior update.json from origin/status
+          git fetch origin status || true
+          if git show origin/status:update.json > update.prev.json 2>/dev/null; then
             FILE_EXISTS=true
-            OLD_BE=$(jq -r '.backend.digest // empty' update.json)
-            OLD_FE=$(jq -r '.frontend.digest // empty' update.json)
+            OLD_BE=$(jq -r '.backend.digest // empty' update.prev.json)
+            OLD_FE=$(jq -r '.frontend.digest // empty' update.prev.json)
           else
             FILE_EXISTS=false
             OLD_BE=""; OLD_FE=""
           fi
+
           echo "file_exists=$FILE_EXISTS" >> $GITHUB_OUTPUT
           echo "old_be=$OLD_BE" >> $GITHUB_OUTPUT
           echo "old_fe=$OLD_FE" >> $GITHUB_OUTPUT
           echo "new_be=$NEW_BE" >> $GITHUB_OUTPUT
           echo "new_fe=$NEW_FE" >> $GITHUB_OUTPUT
+
           jq -n --arg be "$NEW_BE" --arg fe "$NEW_FE" --arg ts "$TS" \
             '{backend:{digest:$be}, frontend:{digest:$fe}, updated:$ts}' > update.new.json
 
-      - name: Create or update file
+      - name: Create or update file on status branch
         if: steps.buildjson.outputs.file_exists == 'false' || steps.buildjson.outputs.old_be != steps.buildjson.outputs.new_be || steps.buildjson.outputs.old_fe != steps.buildjson.outputs.new_fe
         run: |
-          mv update.new.json update.json
-          git config user.name "github-actions"
-          git config user.email "actions@github.com"
+          set -e
+          git fetch origin status || true
+          # Create or switch to local 'status' branch, tracking origin/status if present
+          if git show-ref --quiet refs/remotes/origin/status; then
+            git checkout -B status origin/status
+          else
+            git checkout -B status
+          fi
+
+          mv -f update.new.json update.json
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add update.json
-          git commit -m "chore: update image digests [skip ci]" || echo "no changes"
-          git push
+          if ! git diff --cached --quiet; then
+            git commit -m "chore: update image digests [skip ci]"
+            git push origin status
+          else
+            echo "No changes to commit."
+          fi
 
       - name: Skip update (no digest change)
         if: steps.buildjson.outputs.file_exists == 'true' && steps.buildjson.outputs.old_be == steps.buildjson.outputs.new_be && steps.buildjson.outputs.old_fe == steps.buildjson.outputs.new_fe
