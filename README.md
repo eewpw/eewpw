@@ -254,28 +254,42 @@ They run seamlessly on macOS (Intel or Apple Silicon), Linux, and Windows via Do
 All runtime config lives in `.env`. Key entries:
 
 ```env
-# Images (from GHCR)
+# Images (pulled from GHCR)
 BACKEND_IMAGE=ghcr.io/eewpw/eewpw-backend
 BACKEND_TAG=master
 FRONTEND_IMAGE=ghcr.io/eewpw/eewpw-dashboard
 FRONTEND_TAG=master
 
-# Ports (host)
-# You can change these if 8000 or 8050 are already in use on your system.
-# For example, BACKEND_PORT=8001 and FRONTEND_PORT=8051 will avoid conflicts.
+# Ports (host-side)
 BACKEND_PORT=8000
 FRONTEND_PORT=8050
+REDIS_PORT=6379
 
-# Backend runtime
+# -- Redis configuration --
+# If you already have a Redis server running, uncomment this. 
+# Otherwise, leave it commented (undefined) to use the bundled Redis.
+# REDIS_URL=redis://host.docker.internal:6379/0
+# ---
+
+# Backend config
 EEWPW_DATA_DIR=/app/data
-DATA_ROOT=./data
-
-# Service-to-service base URL (frontend → backend)
 BACKEND_BASE_URL=http://backend:8000
 EEWPW_BACKEND_BASE=http://backend:8000
+CORS_ENABLED=1
+CORS_ORIGINS=http://127.0.0.1:8050,http://localhost:8050
+JSON_LOGS=1
+LOG_TO_FILE=1
+CURSOR_TTL_SECONDS=0
 
-# If using an external Redis, set this (otherwise leave unset) <<<========
-# REDIS_URL=redis://host.docker.internal:6379/0
+# Local mode flags (if used by backend)
+LOCAL_MODE=true
+DEFAULT_USER_ID=local
+
+# Volumes (host paths)
+DATA_ROOT=./data
+
+# URL for tracking the latest EEWPW version
+EEWPW_UPDATE_STATUS_URL=https://raw.githubusercontent.com/eewpw/eewpw-update-status/main/update.json
 ```
 
 > **Note:** Inside Docker, the frontend reaches the backend at `http://backend:8000` (Compose service DNS). If you run the frontend natively, set these to `http://localhost:8000`.
