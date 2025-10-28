@@ -4,23 +4,24 @@
 [![Frontend Build](https://github.com/eewpw/eewpw-dashboard/actions/workflows/docker-frontend.yml/badge.svg?branch=master)](https://github.com/eewpw/eewpw-dashboard/actions/workflows/docker-frontend.yml)
 
 ## Summary
-This repository provides a **Docker Compose deployment** for the EEW Performance Viewer (EEWPW). It does not contain the submodule codes 
-(e.g. dashboard frontend, backend etc.), but orchestrates them as Docker images. The main software components are the **backend API** and 
-the **dashboard (Dash)** containers, plus optional **Redis** container. It centralizes configuration in a single **`.env`** file 
-(ports, image tags, URLs, data path), and offers helper scripts and Make targets for **first‑run**, **updates**, **health checks**, and **logs**.
-For platform and architecture compatibility, see [Appendix: Platform Compatibility](#platform-compatibility).
+This repository provides a **Docker Compose deployment** for the *EEW Performance Viewer (EEWPW)*. It does not contain the source code of 
+submodules (e.g. the frontend dashboard or backend API), but orchestrates them as pre-built Docker images. The main components are the 
+**backend API**, the **dashboard (Dash)** container, and an optional **Redis** container. Configuration is centralized in a single **`.env`** 
+file, which defines ports, image tags, URLs, and data paths. Helper scripts and Make targets are provided for **first-run setup**, **updates**, 
+**health checks**, and **log inspection**. 
 
-> **Note**: We support two runtime modes. This document includes instructions for both cases.
+For platform and architecture details, see [Appendix: Platform Compatibility](#platform-compatibility).
+
+> **Note**  
+> We support two runtime modes, and this document includes instructions for both:
 >
->  1) **With bundled Redis** (`docker-compose.yml`) for common users.
->     This is the default mode for all scripts. In this mode, we pull both dashboard and backend containers, plus the Redis container.
->  
->  2) **Using an external Redis** (`docker-no-redis-compose.yml`), generally for developers. At the development stage, having the Redis 
->     containers running is more practical for testing front and backends. You already have the redis container (`eewpw-redis`). 
->     The runtime environment is slightly adjusted to avoid URL overrides and permission related crashes. In this mode, scripts should be 
->     specifically notified which > docker-compose is used.
-
-
+> 1. **With bundled Redis** (`docker-compose.yml`) – for common users.  
+>    This is the default mode for all scripts. In this mode, both the dashboard and backend containers are started, along with the Redis container.
+>
+> 2. **Using an external Redis** (`docker-no-redis-compose.yml`) – generally for developers.  
+>    At the development stage, running the Redis container (`eewpw-redis`) separately is often more practical for testing front- and back-end components.  
+>    In this mode, scripts must explicitly specify which Compose file is being used. The runtime environment is slightly adjusted to prevent URL overrides 
+>    and permission-related issues.
 
 ---
 
@@ -33,7 +34,9 @@ For platform and architecture compatibility, see [Appendix: Platform Compatibili
 - [Appendix](#appendix)
 - [Next: Viewing EEW playbacks](docs/PLAYBACKS.md)
 
+
 ---
+
 
 ## Prerequisites
 #### [⬆Back to top](#eewpw-deployment)
@@ -46,10 +49,12 @@ For platform and architecture compatibility, see [Appendix: Platform Compatibili
 application. In that case, log in to the GitHub Container Registry before proceeding:*
 
 ```bash
+# Use your personal access token
 docker login ghcr.io
 ```
 
 ---
+
 
 ## Installation
 #### [⬆Back to top](#eewpw-deployment)
@@ -116,11 +121,11 @@ We recommend to use our [make tool](#the-make-tool) for managing the repo enviro
 # With the make tool
 make up                      
 
-# With docker compose
+# Or with docker compose
 docker compose up -d
 ```
 
-**With external Redis** (no Redis service):
+**With external Redis** (no Redis service required):
 ```bash
 make up COMPOSE_FILE=docker-no-redis-compose.yml
 
@@ -134,15 +139,6 @@ docker compose -f docker-no-redis-compose.yml up -d
 docker compose restart backend
 ```
 
-> **Tip:** If you encounter an “address already in use” error on startup, another process or container may already be using port 8000 or 8050. You can adjust these in your `.env` file:
-> ```env
-> BACKEND_PORT=8001
-> FRONTEND_PORT=8051
-> ```
-> Then restart your stack:
-> ```bash
-> make down && make up
-> ```
 ---
 
 ## Update Images / Upgrade
@@ -161,7 +157,7 @@ Then, update containers:
 # With Redis 
 make update
 
-# If, You already have Redis
+# If you already have Redis
 make update COMPOSE_FILE=docker-no-redis-compose.yml
 
 # Then, run smoke tests
@@ -188,12 +184,28 @@ make smoke
   - Ensure `.env` has `BACKEND_BASE_URL=http://backend:8000` (for containerized frontend).
   - `docker compose exec frontend curl -sS http://backend:8000/healthz` should return 200.
 - **Redis errors**: Set `REDIS_URL` to your external instance or use the bundled `docker-compose.yml`.
-- **Ports in use**: If you see “failed to bind host port … address already in use,” update `BACKEND_PORT` / `FRONTEND_PORT` in `.env` to unused values (e.g., 8001, 8051) and restart with `make down && make up`.
+- **Ports in use**: If you see “failed to bind host port … address already in use”, update `BACKEND_PORT` / `FRONTEND_PORT` in `.env` to unused values (e.g., 8001, 8051) and restart with `make up`.
+> ```env
+> BACKEND_PORT=8001
+> FRONTEND_PORT=8051
+> ```
+
+> ```bash
+> # Then restart your stack:
+> make up
+> ```
+
 - **Permissions on data**: ensure `${DATA_ROOT}` is writable by Docker (Linux: check user/group).
 - **Smoke test**:
   ```bash
   make smoke
   ```
+- **No docker deamon** error: Start your Docker app.
+```bash
+docker compose -f docker-compose.yml ps
+Cannot connect to the Docker daemon at unix:///Users/savas/.docker/run/docker.sock. Is the docker daemon running?
+make: *** [ps] Error 1
+```
 
 ---
 
@@ -287,6 +299,7 @@ By default, `docker-compose.yml` is used — override it by adding `COMPOSE_FILE
 | **make pull** | Pulls the latest backend and frontend images from GitHub Container Registry (GHCR). |
 | **make up** | Starts the full stack in detached mode (`-d`). Runs `dirs` first to ensure paths exist. |
 | **make down** | Stops and removes containers and the network, but keeps data volumes. |
+| **make update**| Combines `make pull` and `make up`. | 
 | **make logs** | Follows combined logs for all services (latest 200 lines). Press `Ctrl+C` to stop. |
 | **make ps** | Lists container status (running, exited, unhealthy, etc.). |
 | **make smoke** | Performs a backend health check via `/healthz` using `scripts/smoke.sh`. |
