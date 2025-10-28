@@ -1,23 +1,26 @@
 # EEWPW Deployment
 
-[![Backend Build](https://github.com/eewpw/eewpw-backend/actions/workflows/docker-backend.yml/badge.svg?branch=master)](https://github.com/eewpw/eewpw-backend/actions/workflows/docker.yml)
-[![Frontend Build](https://github.com/eewpw/eewpw-dashboard/actions/workflows/docker-frontend.yml/badge.svg?branch=master)](https://github.com/eewpw/eewpw-dashboard/actions/workflows/docker.yml)
+[![Backend Build](https://github.com/eewpw/eewpw-backend/actions/workflows/docker-backend.yml/badge.svg?branch=master)](https://github.com/eewpw/eewpw-backend/actions/workflows/docker-backend.yml)
+[![Frontend Build](https://github.com/eewpw/eewpw-dashboard/actions/workflows/docker-frontend.yml/badge.svg?branch=master)](https://github.com/eewpw/eewpw-dashboard/actions/workflows/docker-frontend.yml)
 
 ## Summary
-This repository provides a **turn‑key Docker Compose deployment** for the EEW Performance Viewer (EEWPW):
-- This repository does not contain the backend or dashboard code — it orchestrates them as Docker images: the **backend API** and the **dashboard (Dash)** containers, plus optional **Redis**.
-- Centralizes configuration in a single **`.env`** file (ports, image tags, URLs, data path).
-- Offers helper scripts and Make targets for **first‑run**, **updates**, **health checks**, and **config management**.
-- Supports two runtime modes: At the development stage, having the Redis containers running is more practical for testing front and backends. Therefore, we divide the application into two modes.
-  1) **With bundled Redis** (`docker-compose.yml`) for common users.
+This repository provides a **Docker Compose deployment** for the EEW Performance Viewer (EEWPW). It does not contain the submodule codes 
+(e.g. dashboard frontend, backend etc.), but orchestrates them as Docker images. The main software components are the **backend API** and 
+the **dashboard (Dash)** containers, plus optional **Redis** container. It centralizes configuration in a single **`.env`** file 
+(ports, image tags, URLs, data path), and offers helper scripts and Make targets for **first‑run**, **updates**, **health checks**, and **logs**.
+For platform and architecture compatibility, see [Appendix: Platform Compatibility](#platform-compatibility).
 
-  This is the default mode for all scripts. In this mode, we pull both dashboard and backend containers, plus the Redis container.
-  
-  2) **Using an external Redis** (`docker-no-redis-compose.yml`), generally for developers. 
+> **Note**: We support two runtime modes. This document includes instructions for both cases.
+>
+>  1) **With bundled Redis** (`docker-compose.yml`) for common users.
+>     This is the default mode for all scripts. In this mode, we pull both dashboard and backend containers, plus the Redis container.
+>  
+>  2) **Using an external Redis** (`docker-no-redis-compose.yml`), generally for developers. At the development stage, having the Redis 
+>     containers running is more practical for testing front and backends. You already have the redis container (`eewpw-redis`). 
+>     The runtime environment is slightly adjusted to avoid URL overrides and permission related crashes. In this mode, scripts should be 
+>     specifically notified which > docker-compose is used.
 
-  You already have the redis container (`eewpw-redis`). The runtime environment is slightly adjusted to avoid URL overrides and permission related crashes. In this mode, scripts should be specifically notified which docker-compose is used.
 
-> For platform and architecture compatibility, see [Appendix: Platform Compatibility](#platform-compatibility).
 
 ---
 
@@ -35,10 +38,16 @@ This repository provides a **turn‑key Docker Compose deployment** for the EEW 
 ## Prerequisites
 #### [⬆Back to top](#eewpw-deployment)
 
-- **Docker** and **Docker Compose plugin** (Docker Desktop on macOS/Windows; Docker Engine + Compose on Linux)
-- If enforced by the admins, network access to **GHCR** (GitHub Container Registry) to pull images
+- **Docker** and the **Docker Compose plugin**  
+  (Docker Desktop on macOS/Windows; Docker Engine + Compose on Linux)
+- Network access to **GHCR** (GitHub Container Registry), if required by your administrators, to pull container images.
 
-*Our containers are public. If at some point they are temporarily made private, you will receive `access error` while building the application. If that's case, login to GitHub Container Registery before proceeding: `docker login ghcr.io` with your GitHub username and personal access token.*
+*Our containers are public. If they are temporarily made private, you may encounter an* `access error` *when building the 
+application. In that case, log in to the GitHub Container Registry before proceeding:*
+
+```bash
+docker login ghcr.io
+```
 
 ---
 
