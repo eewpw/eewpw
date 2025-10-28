@@ -5,10 +5,11 @@
 
 ## Summary
 This repository provides a **Docker Compose deployment** for the *EEW Performance Viewer (EEWPW)*. It does not contain the source code of 
-submodules (e.g. the frontend dashboard or backend API), but orchestrates them as pre-built Docker images. The main components are the 
-**backend API**, the **dashboard (Dash)** container, and an optional **Redis** container. Configuration is centralized in a single **`.env`** 
-file, which defines ports, image tags, URLs, and data paths. Helper scripts and Make targets are provided for **first-run setup**, **updates**, 
-**health checks**, and **log inspection**. 
+submodules (e.g. the frontend dashboard or backend API), but orchestrates them as pre-built Docker images. 
+
+The main components are the **backend API**, the **dashboard (Dash)** container, and an optional **Redis** container. 
+Configuration is centralized in a single **`.env`** file, which defines ports, image tags, URLs, and data paths. Helper scripts 
+and Make targets are provided for **first-run setup**, **updates**,  **health checks**, and **log inspection**. 
 
 For platform and architecture details, see [Appendix: Platform Compatibility](#platform-compatibility).
 
@@ -19,7 +20,7 @@ For platform and architecture details, see [Appendix: Platform Compatibility](#p
 >    This is the default mode for all scripts. In this mode, both the dashboard and backend containers are started, along with the Redis container.
 >
 > 2. **Using an external Redis** (`docker-no-redis-compose.yml`) – generally for developers.  
->    At the development stage, running the Redis container (`eewpw-redis`) separately is often more practical for testing front- and back-end components.  
+>    At the development stage, running the Redis container (`eewpw-redis`) separately is often more practical for testing front- and back-end components. 
 >    In this mode, scripts must explicitly specify which Compose file is being used. The runtime environment is slightly adjusted to prevent URL overrides 
 >    and permission-related issues.
 
@@ -75,7 +76,7 @@ docker login ghcr.io
    > **You must decide your Redis mode while editing `.env`:** ([more on `.env` in Appendix](#redis-configuration-notes))
    
    * If you already have Redis: Make sure `REDIS_URL=redis://host.docker.internal:6379/0.` is in the `.env` and uncommented.
-   * You are sure you have not installed the Redis before: Comment out the `REDIS_URL` line.
+   * You have not manually installed the Redis container `eewpw-redis`: Comment out the `REDIS_URL` line.
 
 
 3. To start the container stack, we recommend to use the ([see Appendix → make](#the-make-tool)):
@@ -153,6 +154,7 @@ git pull
 ```
 
 Then, update containers:
+
 ```bash
 # With Redis 
 make update
@@ -165,6 +167,7 @@ make smoke
 ```
 
 If you would like to shutdown all containers, and update:
+
 ```bash
 # Shutdown running containers
 # WARNING: All data copied inside the container will be lost
@@ -294,12 +297,12 @@ By default, `docker-compose.yml` is used — override it by adding `COMPOSE_FILE
 | Command | Description |
 |----------|--------------|
 | **make help** | Shows all available Make targets and usage hints. |
-| **make ensure-env** | Verifies `.env` exists before running other targets. Exits with an error if missing. |
-| **make dirs** | Creates the data directory structure (`$DATA_ROOT/files`, `indexes`, `logs`, `auxdata`). Automatically called by `make up`. |
 | **make pull** | Pulls the latest backend and frontend images from GitHub Container Registry (GHCR). |
 | **make up** | Starts the full stack in detached mode (`-d`). Runs `dirs` first to ensure paths exist. |
 | **make down** | Stops and removes containers and the network, but keeps data volumes. |
 | **make update**| Combines `make pull` and `make up`. | 
+| **make ensure-env** | Verifies `.env` exists before running other targets. Exits with an error if missing. |
+| **make dirs** | Creates the data directory structure (`$DATA_ROOT/files`, `indexes`, `logs`, `auxdata`). Automatically called by `make up`. |
 | **make logs** | Follows combined logs for all services (latest 200 lines). Press `Ctrl+C` to stop. |
 | **make ps** | Lists container status (running, exited, unhealthy, etc.). |
 | **make smoke** | Performs a backend health check via `/healthz` using `scripts/smoke.sh`. |
