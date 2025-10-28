@@ -10,13 +10,14 @@ The file `eewpw-config-template.toml` defines all supported parameters used by t
 
 1. Copy the template to create your working configuration:
    ```bash
-   cp eewpw-config-template.toml your-config.toml
+   # Create your own config file
+   cp eewpw-config-template.toml eewpw-config.toml
    ```
-2. Edit `your-config.toml` to adjust paths and parameters for your dataset.
+2. Edit `eewpw-config.toml` to adjust paths and parameters for your dataset.
 3. You may define multiple simulation profiles inside a single file using separate `[profiles.<name>]` sections.
-4. Use the helper script to copy you new file into the docker container:
+4. Then copy this file to the shared volume:
     ```bash
-    bash scripts/manage-config.sh copy your-config.toml
+    cp eewpw-config.toml ./data/config/
     ```
 ---
 
@@ -31,19 +32,6 @@ Example:
 ```toml
 earthquake_catalog = "/app/data/auxdata/pazarcik/earthquake_catalog.csv"
 ```
-
-### Accessing the container
-
-To inspect files directly inside the container, use the following command:
-```bash
-docker exec -it eewpw-backend bash
-```
-Then navigate to the mounted data directory:
-```bash
-cd /app/data
-ls -al
-```
-Uploaded files are located under `/app/data/files`, logs under `/app/data/logs`, and external datasets under `/app/data/auxdata`.
 
 ## Parameter Reference
 

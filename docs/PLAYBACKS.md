@@ -17,8 +17,6 @@ This document will walk you through the steps needed to prepare your working env
 
 > Before continuing, see [Config README](README_CONFIG.md) for a detailed description of all configuration fields and examples. 
 
-EEWPW is shipped with a helper script (`scripts/manage-config.sh`) to manage the configuration file which resides **inside the frontend container** at `/app/client/eewpw-config.toml`. 
-
 1. When EEWPW is built the first time, the config file does not exist. For your first performance simulations, we will prepare a minimal profile inside a file in `toml` format. 
 
 ```toml
@@ -33,48 +31,21 @@ external_rupture_files = "/app/data/auxdata/pazarcik/rupture_elbistan.json; /app
 moment_rate_function = "/app/data/auxdata/pazarcik/moment_rate_function.mr"
 ```
 
-**Save this file in your localhost somewhere safe.** When docker containers need to be restarted from scratch, the containers will reset their states, and the configuration inside the docker container will be lost.
+> **Save this file in your localhost somewhere safe.** 
 
 **Rules**
 - All paths should point to `/app/data/auxdata/`. See the [next section](#sharing-external-datasets-mmis-ruptures-catalogs) below.
 - You can define more than one file for file-dependent datasets. The paths should be seperated with `;`.
 - Time stamps should be in ISO style.
 
-2. The file name we use in this document is `example-scenario/pazarcik.toml`. In the next step, we copy this file into the container. 
+2. The file name we use in this document is `example-scenario/pazarcik.toml`. In the next step, we copy this file into the shared folder. 
 ```bash
-# Copy a local TOML into the container
-scripts/manage-config.sh copy ./example-scenario/pazarcik.toml
-
-# Using the no-redis compose file
-EEWPW_COMPOSE_FILE=docker-no-redis-compose.yml scripts/manage-config.sh copy ./example-scenario/pazarcik.toml
+# Copy a local TOML into the container under ./data/config
+# ./data/config is the shared folder.
+cp example-scenario/pazarcik.toml ./data/config
 ```
 
-Then verify with:
-
-```bash
-# View current config (uses docker-compose.yml by default)
-scripts/manage-config.sh view
-
-# Using the no-redis compose file (if paths are different)
-# The redis-mode command should work out of box as well.
-EEWPW_COMPOSE_FILE=docker-no-redis-compose.yml scripts/manage-config.sh view
-```
-
-3. In your successive runs, you can use `append` option instead of `copy`. However, this depends on how you store your profiles: 
-- You may choose to have individual profiles. In that case `append` is more appropriate. Otherwise, each `copy` will overwrite your old config file. 
-- Alternatively, you can collect all your profiles in a single file. Then `copy` should be used in order not to duplicate the profiles.
-
-```bash
-# Append contents of another file
-scripts/manage-config.sh append -f ./extra-settings.toml
-```
-
-4. If you need to delete the file
-```bash
-# Delete the config
-scripts/manage-config.sh delete
-```
-
+You can freely edit the config file from your host. 
 
 ---
 
