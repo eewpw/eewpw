@@ -1,6 +1,6 @@
 # Viewing playback performance with EEWPW
 
-Tachnically, you can already start using the dashboard by opening a browser window and connecting to `http://localhost:8050` (`8050` is the default port). However, in most use cases, you will need to shift the time stamps  so that everything is aligned with the earthquake origin time. Additonally, each scenario will most likely be used with external data files such as MMI contours, moment rate function, earthquake catalog etc.
+Technically, you can already start using the dashboard by opening a browser window and connecting to `http://localhost:8050` (`8050` is the default port). However, in most use cases, you will need to shift the time stamps  so that everything is aligned with the earthquake origin time. Additonally, each scenario will most likely be used with external data files such as MMI contours, moment rate function, earthquake catalog etc.
 
 This document will walk you through the steps needed to prepare your working environment.
 
@@ -36,7 +36,7 @@ moment_rate_function = "/app/data/auxdata/pazarcik/moment_rate_function.mr"
 **Rules**
 - All paths should point to `/app/data/auxdata/`. See the [next section](#sharing-external-datasets-mmis-ruptures-catalogs) below.
 - You can define more than one file for file-dependent datasets. The paths should be seperated with `;`.
-- Time stamps should be in ISO style.
+- Time stamps should be in ISO or one of the commonly used formats.
 
 2. The file name we use in this document is `example-scenario/pazarcik.toml`. In the next step, we copy this file into the shared folder. 
 ```bash

@@ -81,12 +81,12 @@ docker login ghcr.io
 
 3. To start the container stack, we recommend to use the ([see Appendix → make](#the-make-tool)):
 
-   This step also depends on whether you have Redis or not. Please see the [make](#the-make-tool) tool.
+   This step also depends on whether you have Redis or not. 
    ```bash
    make up
    ```
 
-4. Finally, run the smoke test:
+4. Finally, run the smoke test (no Redis conflict here):
    ```bash
    make smoke
    ```
