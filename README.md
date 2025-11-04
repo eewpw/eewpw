@@ -178,6 +178,8 @@ make update
 make smoke
 ```
 
+**Note:** Each `docker compose pull` or `make update` (which runs `pull` + `up`) fetches new images for the same tags (e.g. `:master`). Over time this leaves old, unreferenced images (shown as `<none>` in `docker image ls`). To reclaim disk space, you can occasionally run `make prune`. **This performs a global Docker cleanup**, so use it only when you want to remove unused images and containers from **all** projects.
+
 ---
 
 ## Troubleshooting
@@ -321,6 +323,7 @@ By default, `docker-compose.yml` is used — override it by adding `COMPOSE_FILE
 | **make ps** | Lists container status (running, exited, unhealthy, etc.). |
 | **make smoke** | Performs a backend health check via `/healthz` using `scripts/smoke.sh`. |
 | **make clean** | Stops and removes containers **and** all volumes for a clean reset. |
+| **make prune** | Global Docker cleanup: prunes all unused images, containers, volumes, and networks. Affects all Docker projects on this machine – use with care. |
 
 
 #### **Using a Custom Compose File**
