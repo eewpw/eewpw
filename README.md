@@ -339,22 +339,11 @@ make smoke COMPOSE_FILE=docker-no-redis-compose.yml
 # View container logs with a specific compose file
 make logs COMPOSE_FILE=docker-no-redis-compose.yml
 
-#### Examples
-```bash
-# Default: uses docker-compose.yml
-make up
-
-# Use docker-no-redis-compose.yml
-make up COMPOSE_FILE=docker-no-redis-compose.yml
-
-# View logs using the same file
-make logs COMPOSE_FILE=docker-no-redis-compose.yml
-
 # Stop containers using a specific compose file
 make down COMPOSE_FILE=docker-no-redis-compose.yml
 ```
 
-This variable works for all Make targets (`up`, `down`, `pull`, `logs`, `ps`, `smoke`, etc.).
+This variable works for all Make targets (`up`, `down`, `pull` etc.).
 
 ## Next: Viewing EWW playbacks
 
