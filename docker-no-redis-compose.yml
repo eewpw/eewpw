@@ -39,6 +39,12 @@ services:
       APP_TITLE: "EEW Performance Viewer"
       EEWPW_CONFIG_PATH: /app/client/eewpw-config.toml
       EEWPW_UPDATE_STATUS_URL: ${EEWPW_UPDATE_STATUS_URL}
+      TITLE_FONT_SIZE: "${TITLE_FONT_SIZE:-16}"
+      AXIS_LABEL_FONT_SIZE: "${AXIS_LABEL_FONT_SIZE:-16}"
+      TICK_LABEL_FONT_SIZE: "${TICK_LABEL_FONT_SIZE:-16}"
+      LEGEND_FONT_SIZE: "${LEGEND_FONT_SIZE:-11}"
+      TOOLTIP_FONT_SIZE: "${TOOLTIP_FONT_SIZE:-11}"
+
     volumes:
       - ${DATA_ROOT}:${EEWPW_DATA_DIR}
     ports:

@@ -29,6 +29,7 @@ For platform and architecture details, see [Appendix: Platform Compatibility](#p
 ## Table of Contents
 - [Prerequisites](#prerequisites)
 - [Installation](#installation)
+- [Customizing the user interface](#customizing-the-user-interface)
 - [Starting & Stopping](#starting--stopping)
 - [Update Images / Upgrade](#update-images--upgrade)
 - [Troubleshooting](#troubleshooting)
@@ -78,7 +79,6 @@ docker login ghcr.io
    * If you already have Redis: Make sure `REDIS_URL=redis://host.docker.internal:6379/0.` is in the `.env` and uncommented.
    * You have not manually installed the Redis container `eewpw-redis`: Comment out the `REDIS_URL` line.
 
-
 3. To start the container stack, we recommend to use the ([see Appendix → make](#the-make-tool)):
 
    This step also depends on whether you have Redis or not. 
@@ -109,6 +109,23 @@ docker login ghcr.io
 
 **[Next chapter](docs/PLAYBACKS.md) will explain how to set up the dashboard for viewing the EEW performance for a playback. Please continue to read first to find out about managing the EEWPW tools and its environment.**
 
+
+---
+
+## Customizing the user interface
+
+> `.env` allows for some customization on the UI. Currently, custom parameters are limited to the font sizes. Edit the file to your taste:
+
+```bash
+# UI Font Sizes - customize as desired (no spaces around '=')
+TITLE_FONT_SIZE=16        # Plot title font size
+AXIS_LABEL_FONT_SIZE=14   # Axis title font size (x/y labels)
+TICK_LABEL_FONT_SIZE=14   # Tick label font size
+LEGEND_FONT_SIZE=12       # Legend text size
+TOOLTIP_FONT_SIZE=12      # Tooltip (hover label) text size
+```
+
+After editing, run `make up` and refresh your browser window (if you had the dashboard open) to make the changes take effect. These settings affect only the frontend Dash plots (e.g., PGA vs Distance and Magnitude Evolution).
 
 ---
 
@@ -292,6 +309,13 @@ DATA_ROOT=./data
 
 # URL for tracking the latest EEWPW version
 EEWPW_UPDATE_STATUS_URL=https://raw.githubusercontent.com/eewpw/eewpw-update-status/main/update.json
+
+# UI Font Sizes - customize as desired (no spaces around '=')
+TITLE_FONT_SIZE=16        # Plot title font size
+AXIS_LABEL_FONT_SIZE=14   # Axis title font size (x/y labels)
+TICK_LABEL_FONT_SIZE=14   # Tick label font size
+LEGEND_FONT_SIZE=12       # Legend text size
+TOOLTIP_FONT_SIZE=12      # Tooltip (hover label) text size
 ```
 
 > **Note:** Inside Docker, the frontend reaches the backend at `http://backend:8000` (Compose service DNS). If you run the frontend natively, set these to `http://localhost:8000`.
