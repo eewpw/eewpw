@@ -1,6 +1,6 @@
 name: Issues Form
 description: Use the template to report a bug, request a feature, or suggest an enhancement.
-title: "[Issue] <short summary>"
+title: "[Issue] Title here"
 labels: []
 body:
   - type: markdown
