@@ -4,8 +4,7 @@
 [![Frontend Build](https://github.com/eewpw/eewpw-dashboard/actions/workflows/docker-frontend.yml/badge.svg?branch=master)](https://github.com/eewpw/eewpw-dashboard/actions/workflows/docker-frontend.yml)
 
 ## Summary
-This repository provides a **Docker Compose deployment** for the *EEW Performance Viewer (EEWPW)*. It does not contain the source code of 
-submodules (e.g. the frontend dashboard or backend API), but orchestrates them as pre-built Docker images. 
+This repository provides a **Docker Compose deployment** for the *EEW Performance Workpackage (EEWPW)*. It does not contain the source code of submodules (e.g. the frontend dashboard for the viewer, or backend API), but orchestrates them as pre-built Docker images. 
 
 The main components are the **backend API**, the **dashboard (Dash)** container, and an optional **Redis** container. 
 Configuration is centralized in a single **`.env`** file, which defines ports, image tags, URLs, and data paths. Helper scripts 
