@@ -170,6 +170,8 @@ cd eewpw
 git pull
 ```
 
+> **Note:** `git pull` under the `eewpw` directory only updates the deployment repo. Please check the `.env.example` file to make sure your local copy (`.env`) is not missing any newly introduced environmental variables.  
+
 Then, update containers:
 
 ```bash
