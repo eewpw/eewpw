@@ -40,9 +40,9 @@ moment_rate_function = "/app/data/auxdata/pazarcik/moment_rate_function.mr"
 
 2. The file name we use in this document is `example-scenario/pazarcik.toml`. In the next step, we copy this file into the shared folder. 
 ```bash
-# Copy a local TOML into the container under ./data/config
-# ./data/config is the shared folder.
-cp example-scenario/pazarcik.toml ./data/config
+# Copy a local TOML into the container under ./data/config, which is the shared 
+# folder. Note that the config file needs to be copied as 'eewpw-config.toml'
+cp example-scenario/pazarcik.toml ./data/config/eewpw-config.toml
 ```
 
 You can freely edit the config file from your host. 
@@ -93,6 +93,12 @@ Direct uploads through the web interface are not recommended for such files beca
 
 Use the helper script instead:
 ```bash
+# Run a dry run for what the script would do
+./scripts/upload_large_json.sh --dry /path/to/large.json
+
+# If the script is not executable, try with bash
+bash ./scripts/upload_large_json.sh --dry /path/to/large.json
+
 # Upload a large JSON file to your local backend
 ./scripts/upload_large_json.sh /path/to/large.json
 
