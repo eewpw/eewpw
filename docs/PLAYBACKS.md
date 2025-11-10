@@ -8,7 +8,7 @@ This document will walk you through the steps needed to prepare your working env
 - [Manage `eewpw-config.toml`](#manage-eewpw-configtoml)
 - [Sharing external datasets (MMIs, ruptures, catalogs)](#sharing-external-datasets-mmis-ruptures-catalogs)
 - [Uploading new data](#upload-your-data)
-
+- [Uploading large JSON files](#uploading-large-json-files)
 ---
 
 
@@ -73,6 +73,8 @@ Reload your app by refreshing your browser, if the dashboard was already open.
 ### Upload your data
 #### [⬆Back to top](#viewing-playback-performance-with-eewpw)
 
+> **Warning**: The `Upload` functionality is for convenience. It is unlikely that your browser can handle very large data files (e.g. gigabytes). Use the *upload large data* helper script instead.
+
 When you connect to the dashboard via your browser (`http://127.0.0.1:8050/` by default), the user interface starts at the `Load` tab with `Upload` and `Refresh list from remote` button. A dropdown widget lists all previous uploads.
 
 **For new files**: Click on the `Upload` (check the dropdown widget first). You can use the `Refresh list from remote` to re-fill the dropdown.
@@ -82,3 +84,37 @@ When you connect to the dashboard via your browser (`http://127.0.0.1:8050/` by 
 After a new upload (or load for pre-existing files), open the `View` panel at the top to visualize the playback performance metrics.
 
 ---
+
+### Uploading Large JSON Files
+#### [⬆Back to top](#viewing-playback-performance-with-eewpw)
+
+The EEWPW backend supports uploading very large JSON data files (e.g., >500 MB).
+Direct uploads through the web interface are not recommended for such files because browsers cannot handle multi-GB payloads.
+
+Use the helper script instead:
+```bash
+# Upload a large JSON file to your local backend
+./scripts/upload_large_json.sh /path/to/large.json
+
+# Or specify a custom backend URL if not using the defaults
+./scripts/upload_large_json.sh /path/to/large.json http://myserver:8000
+```
+
+The script will:
+- Validate that the file exists.
+- Use EEWPW_BACKEND_URL if defined, otherwise default to http://localhost:8000.
+- Print a short summary and upload the file to the backend’s /files endpoint.
+
+Example output:
+```bash
+------------------------------------------------------------
+EEWPW large JSON upload
+  File       : /data/plum_20251106_07.json
+  Backend URL: http://localhost:8000/files
+------------------------------------------------------------
+{"file_id":"c6b4d43e-f4be-480a-acd2-88405cd84f3d","status":"processing","message":null,"progress":0}
+Upload finished.
+```
+
+---
+

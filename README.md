@@ -273,7 +273,7 @@ They run seamlessly on macOS (Intel or Apple Silicon), Linux, and Windows via Do
 
 All runtime config lives in `.env`. Key entries:
 
-```env
+```bash
 # Images (pulled from GHCR)
 BACKEND_IMAGE=ghcr.io/eewpw/eewpw-backend
 BACKEND_TAG=master
@@ -300,6 +300,9 @@ CORS_ORIGINS=http://127.0.0.1:8050,http://localhost:8050
 JSON_LOGS=1
 LOG_TO_FILE=1
 CURSOR_TTL_SECONDS=0
+# Maximum upload size in megabytes. Does not guarantee uploads 
+# of this size will succeed, as browser limits and other factors may apply.
+MAX_UPLOAD_MB=60
 
 # Local mode flags (if used by backend)
 LOCAL_MODE=true
