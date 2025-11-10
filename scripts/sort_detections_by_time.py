@@ -15,6 +15,7 @@ import json
 from datetime import datetime
 from pathlib import Path
 from typing import Any, List, Tuple
+import os
 
 
 def parse_timestamp(ts: Any) -> Tuple[int, Any]:
@@ -52,6 +53,8 @@ def sort_records(records: List[dict], label: str) -> Tuple[List[dict], dict]:
             "last_before": None,
             "last_after": None,
             "out_of_order": 0,
+            "count_before": 0,
+            "count_after": 0,
         }
 
     # Extract timestamps for reporting
@@ -84,6 +87,8 @@ def sort_records(records: List[dict], label: str) -> Tuple[List[dict], dict]:
         "last_before": before_last,
         "last_after": after_last,
         "out_of_order": num_out_of_order,
+        "count_before": len(records),
+        "count_after": len(sorted_records),
     }
     return sorted_records, stats
 
@@ -92,6 +97,8 @@ def process_file(path: Path, dry: bool = False, output: Path | None = None) -> N
     """
     Load JSON, sort detection lists, and write back (or just report in --dry mode).
     """
+    original_size = os.path.getsize(path)
+
     with path.open("r", encoding="utf-8") as f:
         data = json.load(f)
 
@@ -128,12 +135,15 @@ def process_file(path: Path, dry: bool = False, output: Path | None = None) -> N
                 print(f"  {st['label']}: empty list, nothing to sort.")
                 continue
             print(f"  {st['label']}: {st['count']} records")
+            print(f"    Count before    : {st['count_before']}")
+            print(f"    Count after     : {st['count_after']}")
             print(f"    Requires sorting: {st['changed']}")
             print(f"    Out of order    : {st['out_of_order']}")
             print(f"    First before    : {st['first_before']}")
             print(f"    First after     : {st['first_after']}")
             print(f"    Last  before    : {st['last_before']}")
             print(f"    Last  after     : {st['last_after']}")
+            print(f"    Original size   : {original_size / (1024*1024):.2f} MB")
 
     if dry:
         print("  [DRY] No changes written.")
@@ -150,7 +160,10 @@ def process_file(path: Path, dry: bool = False, output: Path | None = None) -> N
     with out_path.open("w", encoding="utf-8") as f:
         json.dump(data, f, ensure_ascii=False, indent=2)
 
+    new_size = os.path.getsize(out_path)
+
     print(f"  [OK] Written to {out_path}")
+    print(f"  New file size     : {new_size / (1024*1024):.2f} MB")
 
 
 def main() -> None:
@@ -179,4 +192,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-    

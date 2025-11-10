@@ -106,13 +106,17 @@ python sort_detections_by_time.py <path-to-json> [--output <path>] [--dry]
 ```text
 [INFO] ../test-data/plum_20251106_07.json
   top-level-list: 23130 records
+    Count before    : 23130
+    Count after     : 23130
     Requires sorting: True
-    Out of order    : 37
+    Out of order    : 14
     First before    : 2025-11-06T18:48:11.000Z
     First after     : 2025-11-06T18:48:11.000Z
     Last  before    : 2025-11-07T15:47:33.000Z
     Last  after     : 2025-11-07T15:47:33.000Z
-  [DRY] No changes written.
+    Original size   : 1688.13 MB
+  [OK] Written to ../test-data/plum_20251106_07-sorted.json
+  New file size     : 1195.21 MB
 ```
 
 If you run the command again **without** `--dry`, the file will be rewritten with detections sorted in time.
