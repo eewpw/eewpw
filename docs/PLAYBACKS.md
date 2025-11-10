@@ -7,6 +7,7 @@ This document will walk you through the steps needed to prepare your working env
 ## Table of Contents
 - [Manage `eewpw-config.toml`](#manage-eewpw-configtoml)
 - [Sharing external datasets (MMIs, ruptures, catalogs)](#sharing-external-datasets-mmis-ruptures-catalogs)
+- [Check your JSON file](#check-and-re-order-your-json-file)
 - [Uploading new data](#upload-your-data)
 - [Uploading large JSON files](#uploading-large-json-files)
 ---
@@ -69,6 +70,68 @@ cp /some/path/earthquakes_catalog.csv ./data/auxdata
 Reload your app by refreshing your browser, if the dashboard was already open.
 
 ---
+
+### Check and re-order your JSON file
+#### [⬆Back to top](#viewing-playback-performance-with-eewpw)
+
+The `sort_detections_by_time.py` utility script ensures that detection entries inside large EEWPW JSON files are **chronologically ordered** by their `"timestamp"` field while leaving the rest of the JSON structure untouched.
+
+> **Why is this needed?** There is absolutely no harm skipping this step. However, if your JSON content is out of order, the time slider widget will be using the indexes and your analysis will be more confusing: As you progress in time, detections will jump backward.
+
+#### Usage
+
+```bash
+python sort_detections_by_time.py <path-to-json> [--output <path>] [--dry]
+```
+
+#### Arguments
+
+| Argument | Description |
+|-----------|-------------|
+| `input` | Path to the JSON file to process. |
+| `--output` | Optional output path. If omitted, the input file is modified in-place. |
+| `--dry` | Dry run: analyze and report, but do **not** write changes. |
+
+#### Behavior
+
+- Automatically detects and sorts:
+  - Top-level lists of detections.
+  - Lists stored under the `"detections"` key.
+- Other structures (e.g. `"annotations"`) are **not** modified.
+- Sorting is **stable** and based on the `"timestamp"` value (timestamps **must be** ISO 8601-compatible).
+- Reports how many records were out of chronological order before sorting.
+
+#### Example Output
+
+```text
+[INFO] ../test-data/plum_20251106_07.json
+  top-level-list: 23130 records
+    Requires sorting: True
+    Out of order    : 37
+    First before    : 2025-11-06T18:48:11.000Z
+    First after     : 2025-11-06T18:48:11.000Z
+    Last  before    : 2025-11-07T15:47:33.000Z
+    Last  after     : 2025-11-07T15:47:33.000Z
+  [DRY] No changes written.
+```
+
+If you run the command again **without** `--dry`, the file will be rewritten with detections sorted in time.
+
+#### Examples
+
+```bash
+# Preview (no write)
+python3 sort_detections_by_time.py data/event.json --dry
+
+# Apply sort in-place
+python3 sort_detections_by_time.py data/event.json
+
+# Write sorted output to a new file
+python3 sort_detections_by_time.py data/event.json --output data/event_sorted.json
+```
+
+---
+
 
 ### Upload your data
 #### [⬆Back to top](#viewing-playback-performance-with-eewpw)
