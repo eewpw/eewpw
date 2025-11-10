@@ -121,6 +121,29 @@ python sort_detections_by_time.py <path-to-json> [--output <path>] [--dry]
 
 If you run the command again **without** `--dry`, the file will be rewritten with detections sorted in time.
 
+
+To confirm, you can run the script again **with** dry option on the sorted JSON:
+
+```bash
+python3 scripts/sort_detections_by_time.py ../test-data/plum_20251106_07-sorted.json --dry
+```
+
+```text
+[INFO] ../test-data/plum_20251106_07-sorted.json
+  top-level-list: 23130 records
+    Count before    : 23130
+    Count after     : 23130
+    Requires sorting: False
+    Out of order    : 0
+    First before    : 2025-11-06T18:48:11.000Z
+    First after     : 2025-11-06T18:48:11.000Z
+    Last  before    : 2025-11-07T15:47:33.000Z
+    Last  after     : 2025-11-07T15:47:33.000Z
+    Original size   : 1195.21 MB
+  [DRY] No changes written.
+```
+
+
 #### Examples
 
 ```bash
