@@ -16,6 +16,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any, List, Tuple
 import os
+from typing import Optional
 
 
 def parse_timestamp(ts: Any) -> Tuple[int, Any]:
@@ -93,7 +94,7 @@ def sort_records(records: List[dict], label: str) -> Tuple[List[dict], dict]:
     return sorted_records, stats
 
 
-def process_file(path: Path, dry: bool = False, output: Path | None = None) -> None:
+def process_file(path: Path, dry: bool = False, output: Optional[Path] = None) -> None:
     """
     Load JSON, sort detection lists, and write back (or just report in --dry mode).
     """
