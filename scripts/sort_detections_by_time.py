@@ -8,6 +8,7 @@ Usage examples:
   python sort_detections_by_time.py path/to/file.json
   python sort_detections_by_time.py path/to/file.json --output path/to/sorted.json
   python sort_detections_by_time.py path/to/file.json --dry
+  python sort_detections_by_time.py path/to/file.json --drop
 """
 
 import argparse
@@ -56,6 +57,7 @@ def sort_records(records: List[dict], label: str) -> Tuple[List[dict], dict]:
             "out_of_order": 0,
             "count_before": 0,
             "count_after": 0,
+            "duplicates_removed": 0,
         }
 
     # Extract timestamps for reporting
@@ -90,11 +92,42 @@ def sort_records(records: List[dict], label: str) -> Tuple[List[dict], dict]:
         "out_of_order": num_out_of_order,
         "count_before": len(records),
         "count_after": len(sorted_records),
+        "duplicates_removed": 0,
     }
     return sorted_records, stats
 
 
-def process_file(path: Path, dry: bool = False, output: Optional[Path] = None) -> None:
+def deduplicate_records(records: List[dict]) -> Tuple[List[dict], int]:
+    """
+    Remove exact duplicate records, keeping the first occurrence of each.
+    Records are considered duplicates only if their JSON representation
+    (with sorted keys) is identical.
+
+    Returns (unique_records, num_removed).
+    """
+    seen = set()
+    unique = []
+    removed = 0
+
+    for rec in records:
+        try:
+            key = json.dumps(rec, sort_keys=True, separators=(",", ":"))
+        except TypeError:
+            # If something is not JSON-serializable, treat it as always unique
+            unique.append(rec)
+            continue
+
+        if key in seen:
+            removed += 1
+            continue
+
+        seen.add(key)
+        unique.append(rec)
+
+    return unique, removed
+
+
+def process_file(path: Path, dry: bool = False, output: Optional[Path] = None, deduplicate: bool = False) -> None:
     """
     Load JSON, sort detection lists, and write back (or just report in --dry mode).
     """
@@ -108,6 +141,15 @@ def process_file(path: Path, dry: bool = False, output: Optional[Path] = None) -
     # Case 1: Top-level list -> treat as detections list
     if isinstance(data, list):
         sorted_records, stats = sort_records(data, label="top-level-list")
+
+        if deduplicate:
+            unique_records, removed = deduplicate_records(sorted_records)
+            stats["duplicates_removed"] = removed
+            stats["count_after"] = len(unique_records)
+            if removed > 0:
+                stats["changed"] = True
+            sorted_records = unique_records
+
         stats_list.append(stats)
         if not dry and stats["changed"]:
             data = sorted_records
@@ -117,6 +159,15 @@ def process_file(path: Path, dry: bool = False, output: Optional[Path] = None) -
         # Always handle 'detections'
         if isinstance(data.get("detections"), list):
             sorted_records, stats = sort_records(data["detections"], label="detections")
+
+            if deduplicate:
+                unique_records, removed = deduplicate_records(sorted_records)
+                stats["duplicates_removed"] = removed
+                stats["count_after"] = len(unique_records)
+                if removed > 0:
+                    stats["changed"] = True
+                sorted_records = unique_records
+
             stats_list.append(stats)
             if not dry and stats["changed"]:
                 data["detections"] = sorted_records
@@ -140,6 +191,7 @@ def process_file(path: Path, dry: bool = False, output: Optional[Path] = None) -
             print(f"    Count after     : {st['count_after']}")
             print(f"    Requires sorting: {st['changed']}")
             print(f"    Out of order    : {st['out_of_order']}")
+            print(f"    Duplicates rem. : {st.get('duplicates_removed', 0)}")
             print(f"    First before    : {st['first_before']}")
             print(f"    First after     : {st['first_after']}")
             print(f"    Last  before    : {st['last_before']}")
@@ -181,6 +233,10 @@ def main() -> None:
         "--dry", action="store_true",
         help="Dry run: analyze and report, but do NOT write any changes."
     )
+    parser.add_argument(
+        "--drop", "-d", action="store_true",
+        help="Drop exact duplicate detection records (identical JSON objects) after sorting."
+    )
 
     args = parser.parse_args()
 
@@ -188,6 +244,7 @@ def main() -> None:
         path=args.input,
         dry=args.dry,
         output=args.output,
+        deduplicate=args.drop,
     )
 
 

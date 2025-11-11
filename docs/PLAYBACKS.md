@@ -81,7 +81,7 @@ The `sort_detections_by_time.py` utility script ensures that detection entries i
 #### Usage
 
 ```bash
-python sort_detections_by_time.py <path-to-json> [--output <path>] [--dry]
+python sort_detections_by_time.py <path-to-json> [--output <path>] [--dry] [--drop]
 ```
 
 #### Arguments
@@ -91,6 +91,7 @@ python sort_detections_by_time.py <path-to-json> [--output <path>] [--dry]
 | `input` | Path to the JSON file to process. |
 | `--output` | Optional output path. If omitted, the input file is modified in-place. |
 | `--dry` | Dry run: analyze and report, but do **not** write changes. |
+| `--drop` | Remove the duplicated JSON blocks from the file. |
 
 #### Behavior
 
@@ -99,27 +100,34 @@ python sort_detections_by_time.py <path-to-json> [--output <path>] [--dry]
   - Lists stored under the `"detections"` key.
 - Other structures (e.g. `"annotations"`) are **not** modified.
 - Sorting is **stable** and based on the `"timestamp"` value (timestamps **must be** ISO 8601-compatible).
-- Reports how many records were out of chronological order before sorting.
+- Reports how many records were out of chronological order before sorting and duplicated information.
+- Optionally removes the duplicates.
 
-#### Example Output
+#### Example 
+Recommended: If you run the command **with** `--dry`, it will only provide a summary. 
+
+```bash
+python3 scripts/sort_detections_by_time.py ../test-data/plum_20251106_07.json -o ../test-data/plum_20251106_07-sorted.json --drop
+```
+
+Output:
 
 ```text
 [INFO] ../test-data/plum_20251106_07.json
   top-level-list: 23130 records
     Count before    : 23130
-    Count after     : 23130
+    Count after     : 1542
     Requires sorting: True
     Out of order    : 14
+    Duplicates rem. : 21588
     First before    : 2025-11-06T18:48:11.000Z
     First after     : 2025-11-06T18:48:11.000Z
     Last  before    : 2025-11-07T15:47:33.000Z
     Last  after     : 2025-11-07T15:47:33.000Z
-    Original size   : 1688.13 MB
+    Original size   : 1195.21 MB
   [OK] Written to ../test-data/plum_20251106_07-sorted.json
-  New file size     : 1195.21 MB
+  New file size     : 79.68 MB
 ```
-
-If you run the command again **without** `--dry`, the file will be rewritten with detections sorted in time.
 
 
 To confirm, you can run the script again **with** dry option on the sorted JSON:
@@ -130,16 +138,17 @@ python3 scripts/sort_detections_by_time.py ../test-data/plum_20251106_07-sorted.
 
 ```text
 [INFO] ../test-data/plum_20251106_07-sorted.json
-  top-level-list: 23130 records
-    Count before    : 23130
-    Count after     : 23130
+  top-level-list: 1542 records
+    Count before    : 1542
+    Count after     : 1542
     Requires sorting: False
     Out of order    : 0
+    Duplicates rem. : 0
     First before    : 2025-11-06T18:48:11.000Z
     First after     : 2025-11-06T18:48:11.000Z
     Last  before    : 2025-11-07T15:47:33.000Z
     Last  after     : 2025-11-07T15:47:33.000Z
-    Original size   : 1195.21 MB
+    Original size   : 79.68 MB
   [DRY] No changes written.
 ```
 
