@@ -113,7 +113,7 @@ docker login ghcr.io
 
 ## Customizing the user interface
 
-> `.env` allows for some customization on the UI. Currently, custom parameters are limited to the font sizes. Edit the file to your taste:
+> `.env` allows for some customization on the UI. Currently, custom parameters are limited to the font sizes and alert polygon cosmetics. Edit the file to your taste:
 
 ```bash
 # UI Font Sizes - customize as desired (no spaces around '=')
@@ -122,6 +122,12 @@ AXIS_LABEL_FONT_SIZE=14   # Axis title font size (x/y labels)
 TICK_LABEL_FONT_SIZE=14   # Tick label font size
 LEGEND_FONT_SIZE=12       # Legend text size
 TOOLTIP_FONT_SIZE=12      # Tooltip (hover label) text size
+# Thickness, opacity and border color for alert polygons. 
+# Use RGB hex color code for border color (in quotes) 
+ALERT_POLY_THICKNESS=4.5
+ALERT_POLY_BORDER_THICKNESS=0.1
+ALERT_POLY_BORDER_COLOR="#000000"
+ALERT_POLY_OPACITY=0.9
 ```
 
 After editing, run `make up` and refresh your browser window (if you had the dashboard open) to make the changes take effect. These settings affect only the frontend Dash plots (e.g., PGA vs Distance and Magnitude Evolution).
@@ -320,6 +326,12 @@ AXIS_LABEL_FONT_SIZE=14   # Axis title font size (x/y labels)
 TICK_LABEL_FONT_SIZE=14   # Tick label font size
 LEGEND_FONT_SIZE=12       # Legend text size
 TOOLTIP_FONT_SIZE=12      # Tooltip (hover label) text size
+# Thickness, opacity and border color for alert polygons. 
+# Use RGB hex color code for border color (in quotes) 
+ALERT_POLY_THICKNESS=4.5
+ALERT_POLY_BORDER_THICKNESS=0.1
+ALERT_POLY_BORDER_COLOR="#000000"
+ALERT_POLY_OPACITY=0.9
 ```
 
 > **Note:** Inside Docker, the frontend reaches the backend at `http://backend:8000` (Compose service DNS). If you run the frontend natively, set these to `http://localhost:8000`.
