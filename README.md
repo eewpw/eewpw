@@ -3,7 +3,10 @@
 [![Backend Build](https://github.com/eewpw/eewpw-backend/actions/workflows/docker-backend.yml/badge.svg?branch=master)](https://github.com/eewpw/eewpw-backend/actions/workflows/docker-backend.yml)
 [![Frontend Build](https://github.com/eewpw/eewpw-dashboard/actions/workflows/docker-frontend.yml/badge.svg?branch=master)](https://github.com/eewpw/eewpw-dashboard/actions/workflows/docker-frontend.yml)
 
+> **Acknowledgment:** *Development of EEWPW is supported by the U.S. Geological Survey ShakeAlert project.*
+
 ## Summary
+
 This repository provides a **Docker Compose deployment** for the *EEW Performance Workpackage (EEWPW)*. It does not contain the source code of submodules (e.g. the frontend dashboard for the viewer, or backend API), but orchestrates them as pre-built Docker images. 
 
 The main components are the **backend API**, the **dashboard (Dash)** container, and an optional **Redis** container. 
@@ -24,6 +27,8 @@ For platform and architecture details, see [Appendix: Platform Compatibility](#p
 >    and permission-related issues.
 
 ---
+
+
 
 ## Table of Contents
 - [Prerequisites](#prerequisites)
