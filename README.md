@@ -50,14 +50,27 @@ For platform and architecture details, see [Appendix: Platform Compatibility](#p
 - **Docker** and the **Docker Compose plugin**  
   (Docker Desktop on macOS/Windows; Docker Engine + Compose on Linux)
 - Network access to **GHCR** (GitHub Container Registry), if required by your administrators, to pull container images.
+    - *Our containers are public. If they are temporarily made private, you may encounter an* `access error` *when building the application. In that case, log in to the GitHub Container Registry before proceeding:*
+      ```bash
+      # Use your personal access token
+      docker login ghcr.io
+      ```
 
-*Our containers are public. If they are temporarily made private, you may encounter an* `access error` *when building the 
-application. In that case, log in to the GitHub Container Registry before proceeding:*
 
-```bash
-# Use your personal access token
-docker login ghcr.io
-```
+> **Windows Users — Important Note About `make`**
+>
+> Windows does **not** include GNU Make by default. Windows users running Docker Desktop 
+> should already have WSL2 enabled.
+> To use commands such as `make up`, `make smoke`, or `make update`, we recommend to use 
+> **WSL 2** and install make:
+>   ```bash
+>   sudo apt update
+>   sudo apt install make
+>   ```
+>
+> If you prefer not to install `make`, you can always use the equivalent `docker compose` 
+> commands directly, as in the [Makefile](Makefile) (check this repository's root folder).
+
 
 ---
 
@@ -78,7 +91,7 @@ docker login ghcr.io
    ```
    Edit the `.env` file. 
    
-   > **You must decide your Redis mode while editing `.env`:** ([more on `.env` in Appendix](#redis-configuration-notes))
+   > **You must decide your Redis mode while editing `.env`:** ([read more about `.env` and Redis](docs/REDIS.md))
    
    * If you already have Redis: Make sure `REDIS_URL=redis://host.docker.internal:6379/0.` is in the `.env` and uncommented.
    * You have not manually installed the Redis container `eewpw-redis`: Comment out the `REDIS_URL` line.
@@ -269,18 +282,10 @@ They run seamlessly on macOS (Intel or Apple Silicon), Linux, and Windows via Do
 
 ---
 
-### Redis Configuration Notes
+
+
+### Runtime configuration
 #### [⬆Back to top](#eewpw-deployment)
-
-- **Bundled Redis** (default):  
-  No `REDIS_URL` is needed; Compose runs Redis automatically.
-
-- **External Redis**:  
-  Uncomment and set `REDIS_URL` in `.env`, for example:  
-  `REDIS_URL=redis://host.docker.internal:6379/0`  
-  This is useful if you already run Redis locally or remotely.
-
-> You can switch between these modes anytime by editing `.env` and restarting with `make down && make up`.
 
 All runtime config lives in `.env`. Key entries:
 
