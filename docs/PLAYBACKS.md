@@ -39,11 +39,11 @@ moment_rate_function = "/app/data/auxdata/pazarcik/moment_rate_function.mr"
 - You can define more than one file for file-dependent datasets. The paths should be seperated with `;`.
 - Time stamps should be in ISO or one of the commonly used formats.
 
-2. The file name we use in this document is `example-scenario/pazarcik.toml`. In the next step, we copy this file into the shared folder. 
+2. The file name we use in this document is `example-data/pazarcik.toml`. In the next step, we copy this file into the shared folder. 
 ```bash
 # Copy a local TOML into the container under ./data/config, which is the shared 
 # folder. Note that the config file needs to be copied as 'eewpw-config.toml'
-cp example-scenario/pazarcik.toml ./data/config/eewpw-config.toml
+cp example-data/pazarcik.toml ./data/config/eewpw-config.toml
 ```
 
 You can freely edit the config file from your host. 

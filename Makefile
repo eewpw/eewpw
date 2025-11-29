@@ -6,12 +6,48 @@ ENV_FILE := .env
 COMPOSE_FILE ?= docker-compose.yml
 DC := docker compose -f $(COMPOSE_FILE)
 
-.PHONY: help ensure-env dirs pull up down update logs ps smoke clean prune
+# ------------------------------
+# Parser (eewpw-parser) helpers
+# ------------------------------
+PARSER_VENV      ?= tools/parser-venv
+PARSER_PYTHON    ?= python3
+PARSER_PIP       := $(PARSER_VENV)/bin/pip
+PARSER_BIN       := $(PARSER_VENV)/bin
+# Pin to a branch or tag if you want stability (e.g. "v0.1.0")
+PARSER_VERSION   ?= master
+PARSER_REPO_URL  ?= https://github.com/eewpw/eewpw-parser.git
+
+# Create venv if missing
+$(PARSER_VENV):
+	$(PARSER_PYTHON) -m venv $(PARSER_VENV)
+	$(PARSER_PIP) install --upgrade pip
+
+
+# ------------------------------
+# Makefile targets
+# ------------------------------
+.PHONY: help ensure-env dirs pull up down update logs ps smoke clean prune parser-install parser-update
 
 # Display available targets and usage
 help:
-	@echo "Targets: pull, up, down, update, logs, ps, smoke, clean, prune"; \
+	@echo "Targets: pull, up, down, update, logs, ps, smoke, clean, prune, parser-install, parser-update"; \
 	echo "Use a different compose file by setting COMPOSE_FILE=<file>. e.g.: make up COMPOSE_FILE=docker-no-redis-compose.yml"
+
+
+# Install or upgrade eewpw-parser into the venv
+parser-install: $(PARSER_VENV)
+	$(PARSER_PIP) install --upgrade pip
+	$(PARSER_PIP) install --upgrade --force-reinstall --no-deps --no-cache-dir "git+$(PARSER_REPO_URL)@$(PARSER_VERSION)"
+	@echo
+	@echo "Parser installed (force reinstalled). CLI tools are in: $(PARSER_BIN)"
+	@echo "Examples:"
+	@echo "  $(PARSER_BIN)/eewpw-parse --help"
+	@echo "  $(PARSER_BIN)/eewpw-parse-live --help"
+	@echo "  $(PARSER_BIN)/eewpw-replay-log --help"
+
+# Alias for updating (same as install, but mental model is 'update')
+parser-update: parser-install
+	@echo "Parser updated to $(PARSER_VERSION) from $(PARSER_REPO_URL)."
 
 # Ensure .env exists before running other targets
 ensure-env:
