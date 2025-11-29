@@ -11,7 +11,7 @@ This repository provides a **Docker Compose deployment** for the *EEW Performanc
 
 The main components are the **backend API**, the **dashboard (Dash)** container, and an optional **Redis** container. 
 Configuration is centralized in a single **`.env`** file, which defines ports, image tags, URLs, and data paths. Helper scripts 
-and Make targets are provided for **first-run setup**, **updates**,  **health checks**, and **log inspection**. 
+and Make targets are provided for **first-run setup**, **updates**,  **health checks**, and **log inspection**. In addition, this deployment includes convenience `make` targets for installing and updating the separate **eewpw-parser** Python package in a local virtual environment (see [The `make` tool](#the-make-tool)).
 
 For platform and architecture details, see [Appendix: Platform Compatibility](#platform-compatibility).
 
@@ -122,6 +122,28 @@ For platform and architecture details, see [Appendix: Platform Compatibility](#p
    ```
 
 5. Access the dashboard: Dashboard should be ready after this. On your browser, go to `http://localhost:${FRONTEND_PORT}` (defaults to **http://localhost:8050**). 
+
+6. (Optional) Install local parser CLI tools
+
+   If you would like to use the standalone `eewpw-parser` tools (for offline log parsing, JSON creation, or replay), you can install them into an isolated virtual environment managed by this repo:
+
+   ```bash
+   make parser-install
+   ```
+
+   This will create (if needed) a virtual environment under `tools/parser-venv` and install the latest `eewpw-parser` from GitHub into it. You can then access the CLI tools via:
+
+   ```bash
+   tools/parser-venv/bin/eewpw-parse --help
+   tools/parser-venv/bin/eewpw-parse-live --help
+   tools/parser-venv/bin/eewpw-replay-log --help
+   ```
+
+   To upgrade to the latest parser version later, run:
+
+   ```bash
+   make parser-update
+   ```
 
 
 **[Next chapter](docs/PLAYBACKS.md) will explain how to set up the dashboard for viewing the EEW performance for a playback. Please continue to read first to find out about managing the EEWPW tools and its environment.**
@@ -359,6 +381,7 @@ Run any of these commands from the project root (where your `.env` file is locat
 By default, `docker-compose.yml` is used — override it by adding `COMPOSE_FILE=<path>`.
 
 
+
 #### **Core Commands**
 | Command | Description |
 |----------|--------------|
@@ -374,6 +397,24 @@ By default, `docker-compose.yml` is used — override it by adding `COMPOSE_FILE
 | **make smoke** | Performs a backend health check via `/healthz` using `scripts/smoke.sh`. |
 | **make clean** | Stops and removes containers **and** all volumes for a clean reset. |
 | **make prune** | Global Docker cleanup: prunes all unused images, containers, volumes, and networks. Affects all Docker projects on this machine – use with care. |
+
+
+#### **Parser-related commands (optional)**
+
+These targets manage a local virtual environment for the `eewpw-parser` project. They do **not** affect any Docker containers or images.
+
+| Command | Description |
+|----------|-------------|
+| **make parser-install** | Creates (if needed) `tools/parser-venv` and force-(re)installs the latest `eewpw-parser` from GitHub into it. Safe to run repeatedly. |
+| **make parser-update**  | Alias of `make parser-install`, but with the mental model of "upgrade parser to the current version". |
+
+After running `make parser-install` (or `make parser-update`), the parser CLI tools are available at `tools/parser-venv/bin/`, for example:
+
+```bash
+tools/parser-venv/bin/eewpw-parse --help
+tools/parser-venv/bin/eewpw-parse-live --help
+tools/parser-venv/bin/eewpw-replay-log --help
+```
 
 
 #### **Using a Custom Compose File**
