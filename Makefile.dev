@@ -1,0 +1,57 @@
+# ============================================================================
+# Makefile.dev
+#
+# Purpose:
+#   Developer-only entrypoint for running the EEWPW stack against local
+#   working trees (../eewpw-backend and ../eewpw-dashboard).
+#
+#   This file must be invoked explicitly:
+#       make -f Makefile.dev <target>
+#
+#   It keeps a strict boundary between:
+#     - User-level deployment commands (Makefile)
+#     - Developer-level local build/testing commands (Makefile.dev)
+#
+# Why we include Makefile:
+#   We include the main Makefile to reuse:
+#     - .env loading and variable definitions
+#     - existing targets (e.g., smoke)
+#   This avoids duplication and guarantees that dev mode remains consistent
+#   with the production deployment logic.
+# ============================================================================
+include Makefile
+
+DEV_COMPOSE_ARGS := -f docker-compose.yml -f docker-compose.dev.yml
+
+.PHONY: check-dev-dirs branch-reminder dev-up dev-down dev-logs dev-smoke help-dev
+
+check-dev-dirs:
+	@test -d ../eewpw-backend || (echo "Missing ../eewpw-backend; dev mode requires sibling repo checkout."; exit 1)
+	@test -d ../eewpw-dashboard || (echo "Missing ../eewpw-dashboard; dev mode requires sibling repo checkout."; exit 1)
+
+branch-reminder:
+	@echo "================================================================"
+	@echo "DEV MODE: Images are built from local working trees."
+	@echo "Ensure correct branches are checked out in:"
+	@echo "  ../eewpw-backend"
+	@echo "  ../eewpw-dashboard"
+	@echo "================================================================"
+
+dev-up: check-dev-dirs branch-reminder
+	docker compose $(DEV_COMPOSE_ARGS) up -d --build
+
+dev-down: check-dev-dirs branch-reminder
+	docker compose $(DEV_COMPOSE_ARGS) down
+
+dev-logs: check-dev-dirs branch-reminder
+	docker compose $(DEV_COMPOSE_ARGS) logs -f --tail=200
+
+dev-smoke: check-dev-dirs branch-reminder
+	$(MAKE) smoke
+
+help-dev:
+	@echo "Dev targets (use make -f Makefile.dev ...):"
+	@echo "  make -f Makefile.dev dev-up"
+	@echo "  make -f Makefile.dev dev-smoke"
+	@echo "  make -f Makefile.dev dev-logs"
+	@echo "  make -f Makefile.dev dev-down"

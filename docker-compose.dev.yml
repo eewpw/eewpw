@@ -1,0 +1,6 @@
+services:
+  backend:
+    build: ../eewpw-backend
+
+  frontend:
+    build: ../eewpw-dashboard
