@@ -61,7 +61,8 @@ dirs: ensure-env
 	install -d -m 0777 "$$DATA_ROOT/indexes"; \
 	install -d -m 0777 "$$DATA_ROOT/logs"; \
 	install -d -m 0777 "$$DATA_ROOT/auxdata"; \
-	install -d -m 0777 "$$DATA_ROOT/config";
+	install -d -m 0777 "$$DATA_ROOT/config"; \
+	install -d -m 0777 "$$DATA_ROOT/manifests"; \
 
 # Pull the latest images from GitHub Container Registry
 pull: ensure-env
