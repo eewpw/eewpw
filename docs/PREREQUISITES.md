@@ -3,23 +3,23 @@
 This guide explains what you need on your machine **before** you continue with the main [README](../README.md).
 
 
-> ## A short note about the `make` tool:
->
-> In this repository, the `make` tool (listed below in the OS setup section) is used for > convenience to simplify common tasks. 
-> 
-> Instead of typing these long Docker commands
-> 
-> ```bash
-> docker compose -f docker-compose.yml up -d
-> ```
-> 
-> you can run shorter commands like: 
-> 
-> ```bash
-> make up
-> ``` 
-> 
-> The `make` tool is optional. If you do not install `make`, you can still use EEWPW, but you will need to run the equivalent Docker commands manually. For most users, installing `make` is strongly recommended because it makes the workflow simpler and less error-prone.
+## A short note about the `make` tool:
+
+In this repository, the `make` tool (listed below in the OS setup section) is used for convenience to simplify common tasks. 
+
+Instead of typing these long Docker commands
+
+```bash
+docker compose -f docker-compose.yml up -d
+```
+
+you can run shorter commands like: 
+
+```bash
+make up
+``` 
+
+The `make` tool is optional. If you do not install `make`, you can still use EEWPW, but you will need to run the equivalent Docker commands manually. For most users, installing `make` is strongly recommended because it makes the workflow simpler and less error-prone.
 
 
 ## OS-specific prerequisites setup
@@ -30,7 +30,7 @@ Install or verify these tools/software for your operating system:
 - **Git**: https://git-scm.com/downloads
 - **Docker Desktop**: https://www.docker.com/products/docker-desktop/
 - **Python 3**: https://www.python.org/downloads/
-- **make** (usually preinstalled; otherwise install via Xcode Command Line Tools)
+- **`make`** (usually preinstalled; otherwise install via Xcode Command Line Tools)
 
 Run EEWPW commands in a standard **Terminal** app.
 
@@ -43,7 +43,7 @@ Run EEWPW commands in a standard **Terminal** app.
     > *Note*: The compose plugin is included in modern Docker installs. You can check it with: `docker compose version`. If not included, you need to follow your Docker version instructions and install the compose plugin manually. 
 
 - **Python 3**: https://www.python.org/downloads/
-- **make** (install via your package manager, e.g. `apt`, `yum`, `dnf`)
+- **`make`** (install via your package manager, e.g. `apt`, `yum`, `dnf`)
 
 Run EEWPW commands in your normal shell.
 
