@@ -3,7 +3,7 @@
 This guide explains what you need on your machine **before** you continue with the main [README](../README.md).
 
 
-#### Before all other tools, read this short note about the `make` tool:
+## A short note about the `make` tool:
 
 In this repository, the `make` tool (listed below in the OS setup section) is used for convenience to simplify common tasks. 
 
