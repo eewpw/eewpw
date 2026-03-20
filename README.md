@@ -7,70 +7,25 @@
 
 ## Summary
 
-This repository provides a **Docker Compose deployment** for the *EEW Performance Workpackage (EEWPW)*. It does not contain the source code of submodules (e.g. the frontend dashboard for the viewer, or backend API), but orchestrates them as pre-built Docker images. 
+This repository is the **deployment entry point** for the *EEW Performance Workpackage (EEWPW)*. It does not contain application code; instead, it orchestrates pre-built Docker images as a runnable system.
 
-The main components are the **backend API**, the **dashboard (Dash)** container, and an optional **Redis** container. 
-Configuration is centralized in a single **`.env`** file, which defines ports, image tags, URLs, and data paths. Helper scripts 
-and Make targets are provided for **first-run setup**, **updates**,  **health checks**, and **log inspection**. In addition, this deployment includes convenience `make` targets for installing and updating the separate **eewpw-parser** Python package in a local virtual environment (see [The `make` tool](#the-make-tool)).
+The stack consists of a **dashboard** (the web interface you see in your browser), **backend** service (handles data and communication behind the scenes), and **Redis** (used for caching to improve performance), all managed together via Docker Compose.
 
-For platform and architecture details, see [Appendix: Platform Compatibility](#platform-compatibility).
-
-> **Note**  
-> We support two runtime modes, and this document includes instructions for both:
->
-> 1. **With bundled Redis** (`docker-compose.yml`) – for common users.  
->    This is the default mode for all scripts. In this mode, both the dashboard and backend containers are started, along with the Redis container.
->
-> 2. **Using an external Redis** (`docker-no-redis-compose.yml`) – generally for developers.  
->    At the development stage, running the Redis container (`eewpw-redis`) separately is often more practical for testing front- and back-end components. 
->    In this mode, scripts must explicitly specify which Compose file is being used. The runtime environment is slightly adjusted to prevent URL overrides 
->    and permission-related issues.
-
----
-
-
-
-## Table of Contents
-- [Prerequisites](#prerequisites)
-- [Installation](#installation)
-- [Customizing the user interface](#customizing-the-user-interface)
-- [Starting & Stopping](#starting--stopping)
-- [Update Images / Upgrade](#update-images--upgrade)
-- [Troubleshooting](#troubleshooting)
-- [Appendix](#appendix)
-- [Next: Viewing EEW playbacks](docs/PLAYBACKS.md)
-
-
----
-
+EEWPW workflows rely on input files produced by a standalone **eewpw-parser** module. While the parser is not part of this containerized stack, this repository provides support for installing and using it as host-side tooling.
 
 ## Prerequisites
 #### [⬆Back to top](#eewpw-deployment)
 
-- **Docker** and the **Docker Compose plugin**  
-  (Docker Desktop on macOS/Windows; Docker Engine + Compose on Linux)
-- Network access to **GHCR** (GitHub Container Registry), if required by your administrators, to pull container images.
-    - *Our containers are public. If they are temporarily made private, you may encounter an* `access error` *when building the application. In that case, log in to the GitHub Container Registry before proceeding:*
-      ```bash
-      # Use your personal access token
-      docker login ghcr.io
-      ```
+Before starting the EEWPW stack, make sure your machine has the required tools installed.
 
+You will need:
+- **Git**
+- **Docker** and the **Docker Compose plugin**
+- **Python 3** (for parser workflows)
+- **make** (recommended for running commands like `make up`, `make smoke`, and `make update`)
 
-> **Windows Users — Important Note About `make`**
->
-> Windows does **not** include GNU Make by default. Windows users running Docker Desktop 
-> should already have WSL2 enabled.
-> To use commands such as `make up`, `make smoke`, or `make update`, we recommend to use 
-> **WSL 2** and install make:
->   ```bash
->   sudo apt update
->   sudo apt install make
->   ```
->
-> If you prefer not to install `make`, you can always use the equivalent `docker compose` 
-> commands directly, as in the [Makefile](Makefile) (check this repository's root folder).
-
+For detailed setup instructions (macOS, Linux, Windows, including WSL2 guidance), see:
+- [docs/PREREQUISITES.md](docs/PREREQUISITES.md)
 
 ---
 
@@ -85,25 +40,21 @@ For platform and architecture details, see [Appendix: Platform Compatibility](#p
    cd eewpw
    ```
 
-2. Prepare the environment file
+2. Create a `.env` file based on `.env.example` and edit it according to your setup.
+
+   The default deployment uses the bundled stack managed by this repository. Advanced Redis and Compose variants are documented in [docs/DEVELOPERS.md](docs/DEVELOPERS.md).
+
+3. Create required directories:
    ```bash
-   cp .env.example .env
+   make dirs
    ```
-   Edit the `.env` file. 
-   
-   > **You must decide your Redis mode while editing `.env`:** ([read more about `.env` and Redis](docs/REDIS.md))
-   
-   * If you already have Redis: Make sure `REDIS_URL=redis://host.docker.internal:6379/0.` is in the `.env` and uncommented.
-   * You have not manually installed the Redis container `eewpw-redis`: Comment out the `REDIS_URL` line.
 
-3. To start the container stack, we recommend to use the ([see Appendix → make](#the-make-tool)):
-
-   This step also depends on whether you have Redis or not. 
+4. To start the container stack, we recommend to use the ([see Appendix → make](#the-make-tool)):
    ```bash
    make up
    ```
 
-4. Finally, run the smoke test (no Redis conflict here):
+5. Finally, run the smoke test (no Redis conflict here):
    ```bash
    make smoke
    ```
@@ -121,11 +72,11 @@ For platform and architecture details, see [Appendix: Platform Compatibility](#p
       [OK] Smoke tests passed.
    ```
 
-5. Access the dashboard: Dashboard should be ready after this. On your browser, go to `http://localhost:${FRONTEND_PORT}` (defaults to **http://localhost:8050**). 
+6. Access the dashboard in your browser at `http://localhost:${FRONTEND_PORT}` (default: `http://localhost:8050`).
 
-6. (Optional) Install local parser CLI tools
+7. Install and use the parser (host-side tooling)
 
-   If you would like to use the standalone `eewpw-parser` tools (for offline log parsing, JSON creation, or replay), you can install them into an isolated virtual environment managed by this repo:
+   EEWPW workflows depend on parser-generated input files. This repository provides helper targets to install and manage the standalone `eewpw-parser` tools (for offline log parsing, JSON creation, or replay) in an isolated virtual environment on the host:
 
    ```bash
    make parser-install
@@ -138,6 +89,10 @@ For platform and architecture details, see [Appendix: Platform Compatibility](#p
    tools/parser-venv/bin/eewpw-parse-live --help
    tools/parser-venv/bin/eewpw-replay-log --help
    ```
+
+   Alternatively, you may install the parser in your own preferred virtual environment (e.g. `./venv`) and run the CLI tools from there.
+
+   We recommend creating a dedicated virtual environment for local parser tooling. A repository-local `./venv` is a good default for manual workflows.
 
    To upgrade to the latest parser version later, run:
 
@@ -177,30 +132,23 @@ After editing, run `make up` and refresh your browser window (if you had the das
 ## Starting & Stopping
 #### [⬆Back to top](#eewpw-deployment)
 
-We recommend to use our [make tool](#the-make-tool) for managing the repo environment. However, you can also use the native `docker compose` commands.
+We recommend using the [make tool](#the-make-tool) for day-to-day management. However, you can also use native Docker Compose commands directly.
 
-**With bundled Redis** (default compose):
+Start the default stack:
 ```bash
 # With the make tool
-make up                      
+make up
 
 # Or with docker compose
 docker compose up -d
 ```
 
-**With external Redis** (no Redis service required):
+Restart a single service:
 ```bash
-make up COMPOSE_FILE=docker-no-redis-compose.yml
-
-# or
-docker compose -f docker-no-redis-compose.yml up -d
-```
-
-**Restart a single service**:
-```bash
-# make does not wrap restart - use docker compose
 docker compose restart backend
 ```
+
+Advanced Compose variants are documented in [docs/DEVELOPERS.md](docs/DEVELOPERS.md).
 
 ---
 
@@ -220,13 +168,9 @@ git pull
 Then, update containers:
 
 ```bash
-# With Redis 
 make update
 
-# If you already have Redis
-make update COMPOSE_FILE=docker-no-redis-compose.yml
-
-# Then, run smoke tests
+# Then run smoke tests
 make smoke
 ```
 
@@ -252,7 +196,7 @@ make smoke
 - **Frontend can’t reach backend**:
   - Ensure `.env` has `BACKEND_BASE_URL=http://backend:8000` (for containerized frontend).
   - `docker compose exec frontend curl -sS http://backend:8000/healthz` should return 200.
-- **Redis errors**: Set `REDIS_URL` to your external instance or use the bundled `docker-compose.yml`.
+- **Redis errors**: In the default setup, Redis is started as part of the deployment. For advanced Redis configurations, see [docs/DEVELOPERS.md](docs/DEVELOPERS.md).
 - **Ports in use**: If you see “failed to bind host port … address already in use”, update `BACKEND_PORT` / `FRONTEND_PORT` in `.env` to unused values (e.g., 8001, 8051) and restart with `make up`.
 > ```env
 > BACKEND_PORT=8001
@@ -323,11 +267,10 @@ BACKEND_PORT=8000
 FRONTEND_PORT=8050
 REDIS_PORT=6379
 
-# -- Redis configuration --
-# If you already have a Redis server running, uncomment this. 
-# Otherwise, leave it commented (undefined) to use the bundled Redis.
+# Redis configuration
+# The default deployment uses the bundled Redis service.
+# Advanced Redis setups are documented in docs/DEVELOPERS.md.
 # REDIS_URL=redis://host.docker.internal:6379/0
-# ---
 
 # Backend config
 EEWPW_DATA_DIR=/app/data
@@ -378,7 +321,7 @@ It wraps all necessary Docker Compose commands, ensures environment setup, and c
 
 Each `make` target performs a defined operation.  
 Run any of these commands from the project root (where your `.env` file is located).  
-By default, `docker-compose.yml` is used — override it by adding `COMPOSE_FILE=<path>`.
+By default, `docker-compose.yml` is used. Advanced Compose overrides are documented in [docs/DEVELOPERS.md](docs/DEVELOPERS.md).
 
 
 
@@ -399,7 +342,7 @@ By default, `docker-compose.yml` is used — override it by adding `COMPOSE_FILE
 | **make prune** | Global Docker cleanup: prunes all unused images, containers, volumes, and networks. Affects all Docker projects on this machine – use with care. |
 
 
-#### **Parser-related commands (optional)**
+#### **Parser-related commands**
 
 These targets manage a local virtual environment for the `eewpw-parser` project. They do **not** affect any Docker containers or images.
 
@@ -417,24 +360,6 @@ tools/parser-venv/bin/eewpw-replay-log --help
 ```
 
 
-#### **Using a Custom Compose File**
-To switch between configurations (e.g., with or without Redis), specify a compose file inline:
-
-```bash
-# Start the stack without bundled Redis
-make up COMPOSE_FILE=docker-no-redis-compose.yml
-
-# Run smoke test using the same configuration
-make smoke COMPOSE_FILE=docker-no-redis-compose.yml
-
-# View container logs with a specific compose file
-make logs COMPOSE_FILE=docker-no-redis-compose.yml
-
-# Stop containers using a specific compose file
-make down COMPOSE_FILE=docker-no-redis-compose.yml
-```
-
-This variable works for all Make targets (`up`, `down`, `pull` etc.).
 
 ## Next: Viewing EWW playbacks
 
