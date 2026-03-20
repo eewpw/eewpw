@@ -3,11 +3,11 @@
 This guide explains what you need on your machine **before** you continue with the main [README](../README.md).
 
 
-## A short note about the `make` tool:
+## Before prerequisites: A note on the `make` tool:
 
 In this repository, the `make` tool (listed below in the OS setup section) is used for convenience to simplify common tasks. 
 
-Instead of typing these long Docker commands
+With `make`, instead of typing these long Docker commands
 
 ```bash
 docker compose -f docker-compose.yml up -d
