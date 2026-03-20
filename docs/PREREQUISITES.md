@@ -3,23 +3,23 @@
 This guide explains what you need on your machine **before** you continue with the main [README](../README.md).
 
 
-## A short note about the `make` tool:
-
-In this repository, the `make` tool (listed below in the OS setup section) is used for convenience to simplify common tasks. 
-
-Instead of typing these long Docker commands
-
-```bash
-docker compose -f docker-compose.yml up -d
-```
-
-you can run shorter commands like: 
-
-```bash
-make up
-``` 
-
-The `make` tool is optional. If you do not install `make`, you can still use EEWPW, but you will need to run the equivalent Docker commands manually. For most users, installing `make` is strongly recommended because it makes the workflow simpler and less error-prone.
+> ## A short note about the `make` tool:
+>
+> In this repository, the `make` tool (listed below in the OS setup section) is used for > convenience to simplify common tasks. 
+> 
+> Instead of typing these long Docker commands
+> 
+> ```bash
+> docker compose -f docker-compose.yml up -d
+> ```
+> 
+> you can run shorter commands like: 
+> 
+> ```bash
+> make up
+> ``` 
+> 
+> The `make` tool is optional. If you do not install `make`, you can still use EEWPW, but you will need to run the equivalent Docker commands manually. For most users, installing `make` is strongly recommended because it makes the workflow simpler and less error-prone.
 
 
 ## OS-specific prerequisites setup
