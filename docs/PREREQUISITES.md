@@ -23,7 +23,7 @@ The `make` tool is optional. If you do not install `make`, you can still use EEW
 
 
 ## OS-specific prerequisites setup
-Install or verify these tools/software for your operating system:
+Install or verify these tools/software for your operating system. For Python, we highly recommend a version later than `python-3.9`. 
 
 ### macOS
 
@@ -72,30 +72,32 @@ Run EEWPW commands in your normal shell.
 
 Before continuing with the main [README](../README.md), check that the required tools are available.
 
-### Check Docker
+- ### Docker
 
-```bash
-docker --version
-docker compose version
-```
+    ```bash
+    docker --version
+    ```
+    ```bash
+    docker compose version
+    ```
 
-### Check Python
+- ### Python
 
-```bash
-python3 --version
-```
+    ```bash
+    python3 --version
+    ```
 
-### Check Git
+- ### Git
 
-```bash
-git --version
-```
+    ```bash
+    git --version
+    ```
 
-### Check make
+- ### make
 
-```bash
-make --version
-```
+    ```bash
+    make --version
+    ```
 
 If one of these commands fails, install that tool first before continuing. Expected example output:
 
