@@ -22,7 +22,7 @@ make up
 The `make` tool is optional. If you do not install `make`, you can still use EEWPW, but you will need to run the equivalent Docker commands manually. For most users, installing `make` is strongly recommended because it makes the workflow simpler and less error-prone.
 
 
-## Operating-system-specific setup
+## OS-specific prerequisites setup
 Install or verify these tools/software for your operating system:
 
 ### macOS
@@ -40,7 +40,7 @@ Run EEWPW commands in a standard **Terminal** app.
 - **Docker Engine**: https://docs.docker.com/engine/install/
 - **Docker Compose plugin** 
 
-    *Note*: The compose plugin is included in modern Docker installs. You can check it with: `docker compose version`. If not included, you need to follow your Docker version instructions and install the compose plugin manually. 
+    > *Note*: The compose plugin is included in modern Docker installs. You can check it with: `docker compose version`. If not included, you need to follow your Docker version instructions and install the compose plugin manually. 
 
 - **Python 3**: https://www.python.org/downloads/
 - **make** (install via your package manager, e.g. `apt`, `yum`, `dnf`)
@@ -54,17 +54,16 @@ Run EEWPW commands in your normal shell.
 - **Python 3**: https://www.python.org/downloads/
 - **WSL2 (Windows Subsystem for Linux)**: https://learn.microsoft.com/windows/wsl/install
 
-  *Note*: **WSL2** lets you run a Linux terminal inside Windows. You can install it by following the official Microsoft guide linked above. 
+  > *Note*: **WSL2** lets you run a Linux terminal inside Windows. 
 
 - **Ubuntu for WSL2** (install from Microsoft Store after enabling WSL2)
-- **`make`** inside Ubuntu
+- **`make`** inside Ubuntu (run the Ubuntu terminal, not CMD)
     
-    If `make` is missing inside Ubuntu (e.g. `make --version` returns command not found), install it with:
-
-    ```bash
-    sudo apt update
-    sudo apt install make
-    ```
+    > *Note*: If `make` is missing inside Ubuntu (e.g. `make --version` returns command not found), install it with:
+    > ```bash
+    > sudo apt update
+    > sudo apt install make
+    > ```
 
 **Important:** Run EEWPW commands in the **Ubuntu terminal inside WSL2**, not in CMD.
 
