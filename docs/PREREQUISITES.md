@@ -3,7 +3,7 @@
 This guide explains what you need on your machine **before** you continue with the main [README](../README.md).
 
 
-### A short note about the `make` tool
+#### Before all other tools, read this short note about the `make` tool:
 
 In this repository, the `make` tool (listed below in the OS setup section) is used for convenience to simplify common tasks. 
 
@@ -120,29 +120,6 @@ This is free software; see the source for copying conditions.
 There is NO warranty; not even for MERCHANTABILITY or FITNESS FOR A
 PARTICULAR PURPOSE.
 ```
-
-## GHCR note
-
-EEWPW images are pulled from GHCR (GitHub Container Registry). In most cases, you do not need to do anything special.
-
-You only need to care about GHCR if pulling images fails. Typical signs are errors like 'unauthorized', 'denied', or connection failures when running `make up` or `docker compose pull`.
-
-If you see such errors, try logging in first:
-
-```bash
-docker login ghcr.io
-```
-
-Use your GitHub credentials or personal access token if needed.
-
-## About Python virtual environments
-
-For parser-related workflows, we recommend using a dedicated Python virtual environment.
-
-A good manual default is:
-- `./venv`
-
-However, you do **not** need to create that environment yet in this prerequisites guide. The main README explains the parser workflow separately.
 
 ## After this
 
