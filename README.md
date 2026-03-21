@@ -45,19 +45,23 @@ It includes both the containerized stack and the parser tooling used to generate
    cd eewpw
    ```
 
+
 2. Copy `.env.example` to `.env`. This file contains the deployment settings used by the EEWPW stack.
    ```bash
    cp .env.example .env
    ```
 
-3. Start the container stack
+
+3. Start the container stack:
    ```bash
    make up
    ```
+
 > *Note*: If pulling images fails (e.g. `unauthorized` or `denied`), log in to **GHCR** (GitHub Container Registry) using your GitHub credentials:
 > ```bash
 > docker login ghcr.io
 > ```
+
 
 4. Verify the installation:
    ```bash
@@ -80,6 +84,7 @@ It includes both the containerized stack and the parser tooling used to generate
 
    Then open a browser and go to `http://localhost:8050`. You should be able to see the dashboard.
 
+
 ### Part 2: Install parser tooling (host-side)
 The parser is a core component of the EEWPW workflow. It runs on your host machine and is not part of the Docker stack.
 
@@ -91,13 +96,16 @@ make parser-install
 
 This command creates and manages a dedicated environment under `tools/parser-venv` and installs the parser command-line tools there.
 
-You can use the parser in two ways:
+The main command most users will use for offline parsing workflows is `eewpw-parse`.
+
+You can use the parser in two equivalent ways. The first runs the tools directly without changing your shell environment. The second activates the environment, which may feel more familiar if you are used to working with Python virtual environments.
 
 
-**Option A (recommended): run tools directly**
+**Option A: from `tools` directly**
 ```bash
 tools/parser-venv/bin/eewpw-parse --help
 ```
+
 
 **Option B: activate the environment (optional)**
 ```bash
@@ -105,7 +113,13 @@ source tools/parser-venv/bin/activate
 eewpw-parse --help
 ```
 
-You can also explore available parser commands using your shell's tab-completion (e.g. press <Tab> after typing `tools/parser-venv/bin/eewpw-` or `eewpw-` if the environment is activated).
+When the environment is activated, you can run the parser commands from any directory (you do not need to be in the `eewpw` project root). This can be convenient if your input data lives elsewhere.
 
+> *Hint*: You can explore available parser commands using your shell's tab-completion (e.g. press <Tab> after typing `tools/parser-venv/bin/eewpw-` or `eewpw-` if the environment is activated).
+>
+> You should see commands such as:
+> - `eewpw-parse`
+> - `eewpw-parse-live`
+> - `eewpw-replay-log`
+  
 The parser will be used in the next section to convert raw logs into EEWPW-compatible JSON files for the dashboard.
-
