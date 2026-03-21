@@ -82,7 +82,14 @@ It includes both the containerized stack and the parser tooling used to generate
    [OK] Smoke tests passed.
    ```
 
-   Then open a browser and go to `http://localhost:8050`. You should be able to see the dashboard.
+   Then open a browser and go to `http://localhost:8050` or `http://127.0.0.1/8050`. You should be able to see the dashboard.
+
+
+If everything worked as expected, your Docker stack is now up and running. If you are curious, you can also inspect the running containers with:
+```bash
+docker ps --all --filter "name=eewpw"
+```
+
 
 
 ### Part 2: Install parser tooling (host-side)
@@ -101,7 +108,7 @@ The main command most users will use for offline parsing workflows is `eewpw-par
 You can use the parser in two equivalent ways. The first runs the tools directly without changing your shell environment. The second activates the environment, which may feel more familiar if you are used to working with Python virtual environments.
 
 
-**Option A: from `tools` directly**
+**Option A: absolute path `tools/parser-venv/bin/`**
 ```bash
 tools/parser-venv/bin/eewpw-parse --help
 ```
