@@ -108,13 +108,13 @@ The main command most users will use for offline parsing workflows is `eewpw-par
 You can use the parser in two equivalent ways. The first runs the tools directly without changing your shell environment. The second activates the environment, which may feel more familiar if you are used to working with Python virtual environments.
 
 
-**Option A: absolute path `tools/parser-venv/bin/`**
+**Option A: using the absolute path `tools/parser-venv/bin/`**
 ```bash
 tools/parser-venv/bin/eewpw-parse --help
 ```
 
 
-**Option B: activate the environment (optional)**
+**Option B: activate the environment (optional, if preferred)**
 ```bash
 source tools/parser-venv/bin/activate
 eewpw-parse --help
@@ -129,4 +129,124 @@ When the environment is activated, you can run the parser commands from any dire
 > - `eewpw-parse-live`
 > - `eewpw-replay-log`
   
-The parser will be used in the next section to convert raw logs into EEWPW-compatible JSON files for the dashboard.
+
+---
+
+## Run an example project
+#### [⬆Back to top](#eewpw-deployment)
+
+In this section, we will run a complete example workflow using the EEWPW system.  
+The goal is to take raw log files, process them with the parser, and load the resulting EEWPW-compatible JSON files into the dashboard.
+
+### What we will do
+
+We will:
+
+1. Use example raw logs located under `example-data/raw-logs/`
+2. Use example parser profile JSON files under `example-data/parser-profiles/profiles/`
+3. Run the parser (`eewpw-parse`) with a custom configuration root
+4. Generate an output JSON file
+
+### Example structure
+
+The relevant folders are:
+
+```text
+example-data/
+  raw-logs/
+    Elm2020/
+      scfinder.log
+  parser-profiles/
+    profiles/
+      scfinder_time_vs_mag.json
+      vs_time_vs_mag.json
+```
+
+- `raw-logs/` contains input log files to be parsed
+- `parser-profiles/profiles/` contains JSON files that define how log lines are interpreted by the parser
+
+
+### Prepare parser profile JSON files
+
+Before running the parser, we will prepare two parser profile JSON files:
+
+- `example-data/parser-profiles/profiles/scfinder_time_vs_mag.json`
+- `example-data/parser-profiles/profiles/vs_time_vs_mag.json`
+
+
+The filenames must stay exactly as shown above.
+
+**Important**: The profile JSON files **must** be placed inside a directory named `profiles/`. The parser expects this structure and will not detect the files if they are placed directly under another directory.
+
+These files define the patterns that the parser searches for in the raw log files. The parser uses them in a `grep`-like way: it scans the logs, finds matching lines, and records them together with their timestamps.
+
+Users can edit the `patterns` section freely. Each entry must contain:
+
+- a pattern identifier (the key; can be any string)
+- the pattern string to search for in the log file
+
+A minimal example looks like this:
+
+```json
+{
+  "algorithm": "finder",
+  "dialect": "scfinder",
+  "patterns": {
+    "1": "length has increased",
+    "2": "length has decreased"
+  }
+}
+```
+
+The top-level `algorithm` and `dialect` fields are informational. For this workflow, the main part to edit is `patterns`.
+
+In many cases, these profile JSON files can be reused across runs. Users often keep them in a central location and apply them to similar log files.
+
+
+### Run the parser
+
+Now we run the parser on the example log files using the prepared profile JSON files.
+
+Before running the parser, make sure the output directory exists. If it does not exist, create it manually, for example:
+
+```bash
+mkdir -p example-data/output
+```
+
+A few important points that require your attention:
+
+1. The `--config-root` argument must point to the parent directory that contains the `profiles/` folder (not the `profiles/` folder itself). In this example, it points to `example-data/parser-profiles`, which contains the required `profiles/` subdirectory.
+
+2. When running the parser, we explicitly point it to our configuration directory using `--config-root`.
+
+3. The parser automatically selects the correct profile JSON file based on the `--algo` and `--dialect` arguments. The filenames must follow the expected naming convention (for example, `scfinder_time_vs_mag.json` for `finder + scfinder`, and `vs_time_vs_mag.json` for `vs + scvsmag`). These filenames must remain unchanged so that the parser can locate and use them correctly.
+
+
+Now, we run the parser for FinDer/scfinder:
+
+```bash
+tools/parser-venv/bin/eewpw-parse \
+  --algo finder \
+  --dialect scfinder \
+  --config-root example-data/parser-profiles \
+  --mode batch \
+  --output example-data/output/finder_scfinder.json \
+  example-data/raw-logs/Elm2020/scfinder.log
+```
+
+We repeat the same process for the VS example:
+
+```bash
+tools/parser-venv/bin/eewpw-parse \
+  --algo vs \
+  --dialect scvsmag \
+  --config-root example-data/parser-profiles \
+  --mode batch \
+  --output example-data/output/vs_scvsmag.json \
+  example-data/raw-logs/Elm2020/vs.log
+```
+
+These commands will produce EEWPW-compatible JSON files in `example-data/output/`.
+
+Each output file contains the parsed detections and annotations extracted from the raw log files using the patterns defined in the profile JSON files.
+
