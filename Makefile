@@ -30,14 +30,14 @@ $(PARSER_VENV):
 
 # Display available targets and usage
 help:
-	@echo "Targets: pull, up, down, update, logs, ps, smoke, clean, prune, parser-install, parser-update"; \
+	@echo "Targets: pull, up, down, update, logs, ps, smoke, clean, prune, parser-install, parser-update, ensure-env, dirs"; \
 	echo "Use a different compose file by setting COMPOSE_FILE=<file>. e.g.: make up COMPOSE_FILE=docker-no-redis-compose.yml"
 
 
 # Install or upgrade eewpw-parser into the venv
 parser-install: $(PARSER_VENV)
 	$(PARSER_PIP) install --upgrade pip
-	$(PARSER_PIP) install --upgrade --force-reinstall --no-deps --no-cache-dir "git+$(PARSER_REPO_URL)@$(PARSER_VERSION)"
+	$(PARSER_PIP) install --upgrade --force-reinstall --no-cache-dir "git+$(PARSER_REPO_URL)@$(PARSER_VERSION)"
 	@echo
 	@echo "Parser installed (force reinstalled). CLI tools are in: $(PARSER_BIN)"
 	@echo "Examples:"
@@ -62,7 +62,7 @@ dirs: ensure-env
 	install -d -m 0777 "$$DATA_ROOT/logs"; \
 	install -d -m 0777 "$$DATA_ROOT/auxdata"; \
 	install -d -m 0777 "$$DATA_ROOT/config"; \
-	install -d -m 0777 "$$DATA_ROOT/manifests"; \
+	install -d -m 0777 "$$DATA_ROOT/manifests";
 
 # Pull the latest images from GitHub Container Registry
 pull: ensure-env
