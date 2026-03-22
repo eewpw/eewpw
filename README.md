@@ -16,15 +16,13 @@ EEWPW workflows rely on input files produced by a standalone **eewpw-parser** mo
 ## Prerequisites
 #### [⬆Back to top](#eewpw-deployment)
 
-Before starting the EEWPW stack, make sure your machine has the required tools installed.
-
 You will need:
 - **Git**
 - **Docker** and the **Docker Compose plugin**
 - **Python 3** (for parser workflows)
 - **make** (required for running commands like `make up`, `make smoke`, and `make update`)
 
-For detailed setup instructions (macOS, Linux, Windows, including WSL2 guidance), see [docs/PREREQUISITES.md](docs/PREREQUISITES.md)
+For setup instructions (macOS, Linux, Windows, including WSL2 guidance), see [the prerequisites documentation](docs/PREREQUISITES.md)
 
 ---
 
@@ -240,5 +238,7 @@ tools/parser-venv/bin/eewpw-parse \
   example-data/raw-logs/Elm2020/vs.log
 ```
 
-You should see the EEWPW-compatible JSON files in `example-data/output/`. Each output file contains detections and annotations extracted from the logs using the defined patterns.
+You should see the EEWPW-compatible JSON files in `example-data/output/`. Each output file contains detections and annotations extracted from the logs using the defined patterns. \
 
+
+For a full list of supported algorithms and dialects, see the [parser technical guide](docs/tools/parser.md).

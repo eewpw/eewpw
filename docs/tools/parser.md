@@ -30,6 +30,9 @@ Some algorithms expose one canonical dialect only. Finder is the main exception:
 | **gfast** | `shakealert` | none | `GfastParser` |
 | **eqinfo** | `shakealert` | none | `EqinfoParser` |
 
+The values listed in this table are the valid inputs for `--algo` and `--dialect`.  
+If an unsupported combination is provided, the parser will fail at runtime.
+
 ## CLI interfaces
 
 The repository currently exposes three command-line entry points:
@@ -75,7 +78,8 @@ Core arguments:
 
 Parser runtime config contract:
 - Supported runtime files are `global.json` and `profiles/*.json`.
-- Resolution order is `--config-root` override, then `EEWPW_PARSER_CONFIG_ROOT`, then packaged defaults in `src/eewpw_parser/configs/`.
+- Resolution order is `--config-root` override, then `EEWPW_PARSER_CONFIG_ROOT`, then packaged defaults in `src/eewpw_parser/configs/`. 
+- The configuration root must contain a `profiles/` directory with the expected profile JSON files.
 - There is no automatic fallback to repo-root `./example-configs` or `./user-config`.
 - Repo-root `./example-configs` is example-only; it is used at runtime only when explicitly selected as a config root.
 - `eewpw-parse --show-env` mirrors this runtime per-file resolution and reports which source is selected for each runtime file.
@@ -113,6 +117,7 @@ profiles/vs_time_vs_mag.json
 
 ## Profile JSON files
 
+- Profile selection is based on filename conventions, not on the `algorithm` or `dialect` fields inside the JSON.
 - Packaged profile JSON files live in `src/eewpw_parser/configs/profiles/`.
 - Example copies are under `example-configs/profiles/`; users can copy/edit profiles and point the parser to them with `--config-root` or `EEWPW_PARSER_CONFIG_ROOT`.
 - Top-level `algorithm` and `dialect` fields are informational metadata only. They are not used by parser runtime logic.
@@ -204,7 +209,7 @@ eewpw-parse-live \
   --data-root tmp/live_output
 ```
 
-Live mode currently supports `finder`, `vs`, `plum`, and `epic`. `gfast` and `eqinfo` are accepted by argument choices but rejected at runtime. Use `--data-root` as the preferred output root (`--output-dir` is a deprecated fallback).
+Live mode currently supports `finder`, `vs`, `plum`, and `epic`. `gfast` and `eqinfo` are accepted by argument choices but support is not implemented and execution will fail at runtime. Use `--data-root` as the preferred output root (`--output-dir` is a deprecated fallback).
 
 For full live CLI behavior, flags, output layout, and caveats, see [Live parsing guide](live-parsing.md).
 
@@ -222,8 +227,9 @@ Replay note: this command replays raw log lines only and does not read parser co
 
 For full replay CLI behavior, ordering model, timing rules, and caveats, see [Log replay guide](log-replay.md).
 
-## Notes and maintenance guidance
+## Notes and maintenance guidance for developers
 
+- **TODO**: Add live parsing and log-replay documentation (currently missing).
 - Prefer canonical dialect names in documentation and scripts.
 - Treat alias spellings as compatibility inputs, not preferred names.
 - Profile JSONs provide annotation match regex patterns; `patterns.timestamp_regex` is not a runtime key and is stripped by `load_profile()`.
