@@ -237,7 +237,7 @@ tools/parser-venv/bin/eewpw-parse \
   --config-root example-data/parser-profiles \
   --mode batch \
   --output example-data/output/vs_scvsmag.json \
-  example-data/raw-logs/Elm2020/vs.log
+  example-data/raw-logs/Elm2020/scvsmag-processing-info.log
 ```
 
 You should see the EEWPW-compatible JSON files in `example-data/output/`. Each output file contains detections and annotations extracted from the logs using the defined patterns. \
