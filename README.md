@@ -244,3 +244,75 @@ You should see the EEWPW-compatible JSON files in `example-data/output/`. Each o
 
 
 For a full list of supported algorithms and dialects, see the [parser technical guide](docs/tools/parser.md).
+
+
+---
+
+## Load results into the dashboard
+#### [⬆Back to top](#eewpw-deployment)
+
+### Upload, merge and view: short introduction
+
+1. Open the dashboard in your browser (`http://localhost:8050` or `http://127.0.0.1:8050`)
+2. Upload the generated JSON files from `example-data/output/` using the `Upload file` button
+3. Merge the uploaded files to create a combined dataset using the `Create merged dataset` button
+4. Switch to the `View` panel and move the time slider to visualize the file contents. 
+ 
+---
+
+### Configure the dashboard
+
+The dashboard requires a configuration file to define scenarios and external data.
+
+Copy the example configuration file:
+
+```bash
+cp example-data/dashboard-config/Elm2020-demo/eewpw-config.toml data/config/eewpw-config.toml
+```
+
+**Important**:
+- The configuration file must be named `eewpw-config.toml`
+- It must be placed under `data/config/`
+
+---
+
+### Add auxiliary data
+
+The configuration file may reference additional data (e.g. GeoJSON files). These must be placed under the `data/auxdata/` directory.
+
+Copy the example auxiliary data:
+
+```bash
+cp -r example-data/dashboard-auxdata/Elm2020-demo data/auxdata/
+```
+
+Inside the configuration file, paths are defined using `/app/data/...`. This is the container-internal path that maps to your local `data/` directory.
+
+For example:
+
+```toml
+external_mmi_files = "/app/data/auxdata/Elm2020-demo/demo-fake-cont-mmi.json"
+```
+
+This corresponds to the following location on your machine:
+
+```text
+data/auxdata/Elm2020-demo/demo-fake-cont-mmi.json
+```
+
+---
+
+### Recap
+
+The following rules must be respected for EEWPW to work correctly:
+
+**Parser**
+- `--config-root` must point to a directory that contains a `profiles/` folder
+- Profile JSON files must be placed under `profiles/`
+- Profile filenames must follow the expected naming convention (e.g. `scfinder_time_vs_mag.json`, `vs_time_vs_mag.json`)
+
+**Dashboard**
+- The configuration file must be named `eewpw-config.toml` and placed under `data/config/`
+- All auxiliary files must be placed under `data/auxdata/`
+- Paths inside the configuration must use `/app/data/...`
+- Paths in the configuration must match the actual directory structure under `data/auxdata/`
