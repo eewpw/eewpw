@@ -135,10 +135,7 @@ When the environment is activated, you can run the parser commands from any dire
 ## Run an example project
 #### [⬆Back to top](#eewpw-deployment)
 
-In this section, we will run a complete example workflow using the EEWPW system.  
-The goal is to take raw log files, process them with the parser, and load the resulting EEWPW-compatible JSON files into the dashboard.
-
-### What we will do
+In this section, we run a complete example workflow using the EEWPW system. The goal is to take raw log files, process them with the parser, and load the resulting EEWPW-compatible JSON files into the dashboard.
 
 We will:
 
@@ -173,12 +170,11 @@ Before running the parser, we will prepare two parser profile JSON files:
 - `example-data/parser-profiles/profiles/scfinder_time_vs_mag.json`
 - `example-data/parser-profiles/profiles/vs_time_vs_mag.json`
 
+These files define the patterns that the parser searches for in the raw logs. The parser uses them in a `grep`-like way: it scans the logs, finds matching lines, and records them together with their timestamps. These are referred to as `annotations`.
 
 The filenames must stay exactly as shown above.
 
 **Important**: The profile JSON files **must** be placed inside a directory named `profiles/`. The parser expects this structure and will not detect the files if they are placed directly under another directory.
-
-These files define the patterns that the parser searches for in the raw log files. The parser uses them in a `grep`-like way: it scans the logs, finds matching lines, and records them together with their timestamps.
 
 Users can edit the `patterns` section freely. Each entry must contain:
 
@@ -200,14 +196,12 @@ A minimal example looks like this:
 
 The top-level `algorithm` and `dialect` fields are informational. For this workflow, the main part to edit is `patterns`.
 
-In many cases, these profile JSON files can be reused across runs. Users often keep them in a central location and apply them to similar log files.
+In many cases, these profile JSONs can be reused across runs. Users often keep them in a central location and apply them to similar log files.
 
 
 ### Run the parser
 
-Now we run the parser on the example log files using the prepared profile JSON files.
-
-Before running the parser, make sure the output directory exists. If it does not exist, create it manually, for example:
+Before running the parser, make sure the output directory exists. If not, create it manually, for example:
 
 ```bash
 mkdir -p example-data/output
@@ -217,12 +211,12 @@ A few important points that require your attention:
 
 1. The `--config-root` argument must point to the parent directory that contains the `profiles/` folder (not the `profiles/` folder itself). In this example, it points to `example-data/parser-profiles`, which contains the required `profiles/` subdirectory.
 
-2. When running the parser, we explicitly point it to our configuration directory using `--config-root`.
+2. Always provide `--config-root` when using custom profile files, otherwise the parser will use its default configuration.
 
 3. The parser automatically selects the correct profile JSON file based on the `--algo` and `--dialect` arguments. The filenames must follow the expected naming convention (for example, `scfinder_time_vs_mag.json` for `finder + scfinder`, and `vs_time_vs_mag.json` for `vs + scvsmag`). These filenames must remain unchanged so that the parser can locate and use them correctly.
 
 
-Now, we run the parser for FinDer/scfinder:
+Now, we run the parser for finder/scfinder:
 
 ```bash
 tools/parser-venv/bin/eewpw-parse \
@@ -246,7 +240,5 @@ tools/parser-venv/bin/eewpw-parse \
   example-data/raw-logs/Elm2020/vs.log
 ```
 
-These commands will produce EEWPW-compatible JSON files in `example-data/output/`.
-
-Each output file contains the parsed detections and annotations extracted from the raw log files using the patterns defined in the profile JSON files.
+You should see the EEWPW-compatible JSON files in `example-data/output/`. Each output file contains detections and annotations extracted from the logs using the defined patterns.
 
