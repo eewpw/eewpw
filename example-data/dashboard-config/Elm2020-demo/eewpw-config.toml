@@ -1,0 +1,42 @@
+# ========================================================================
+# This is a template file for the EEW performance viewer configuration
+# parameters. Please copy this file as "dashapp.config" under the same
+# directory. You can edit the parameters and create new profiles for
+# additional simulations you run.
+#
+# Fields:
+# origin_time            : Earthquake origin time
+# playback_time          : Time that playback was performed. Together with origin time,
+#                            timestamps will be converted to the historical times.
+# earthquakes_timedelta. : Time window in seconds. The earthquakes on map will be shown
+#                            only if they are within [time step - earthquakes_timedelta]
+# mmi_distances          : CY08_worden or BA08_worden; method to calculate MMIs from distances.
+# earthquake_catalog     : List of earthquakes a CSV file. The columns should be the first row as 
+#                            Otime,longitude,latitude,depth_km,magnitude_type,magnitude,eventID,catalog
+#                            2023-02-06T01:17:32Z,37.043,37.288,8.6,Mw,7.7,543428,AFAD
+#.                           2023-02-06T01:23:16Z,36.806,37.224,7.0,ML,4.9,543432,AFAD
+# external_mmi_files.    : Any MMI data in GeoJSON format.
+# external_rupture_files : Rupture files in GeoJSON format.
+# moment_rate_function   : Any text file formatted as 
+#                            2023-02-06 01:17:34
+#                            dt: 0.01
+#                            Time[s]     Moment_Rate [Nm]
+#                            0.00		0.0000e+00
+#                            0.01		2.4079e+07
+# ========================================================================
+
+[general]
+
+
+[profiles.Elm2020-demo]
+origin_time = ""
+playback_time = ""
+earthquakes_timedelta = 20
+mmi_distances = "BA08_worden"
+earthquake_catalog = "http://arclink.ethz.ch/fdsnws/event/1/query?"
+external_mmi_files = "/app/data/auxdata/20230206_M7.5_Elbistan/20230206_M7.5_Elbistan_cont_mmi.json"
+external_rupture_files = "/app/data/auxdata/20230206_M7.5_Elbistan/20230206_M7.5_Elbistan_rupture.json"
+moment_rate_function = "/app/data/auxdata/20230206_M7.5_Elbistan/20230206_M7.5_Elbistan_mr.txt;/app/data/auxdata/20230206_M7.5_Elbistan/20230206_M7.8_Pazarcik_mr.txt"
+fdsn_radius = 5
+fdsn_min_magnitude = 1.0
+fdsn_time_padding_seconds = 300
