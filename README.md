@@ -251,16 +251,16 @@ For a full list of supported algorithms and dialects, see the [parser technical 
 ## Load results into the dashboard
 #### [⬆Back to top](#eewpw-deployment)
 
-### Upload, merge and view: short introduction
+### Upload, merge and view
 
 1. Open the dashboard in your browser (`http://localhost:8050` or `http://127.0.0.1:8050`)
 2. Upload the generated JSON files from `example-data/output/` using the `Upload file` button
 3. Merge the uploaded files to create a combined dataset using the `Create merged dataset` button
-4. Switch to the `View` panel and move the time slider to visualize the file contents. 
- 
+4. Switch to the `View` panel and use the time slider to explore the data. 
+
 ---
 
-### Configure the dashboard
+### Configure the dashboard for auxiliary data
 
 The dashboard requires a configuration file to define scenarios and external data.
 
@@ -275,8 +275,6 @@ cp example-data/dashboard-config/Elm2020-demo/eewpw-config.toml data/config/eewp
 - It must be placed under `data/config/`
 
 ---
-
-### Add auxiliary data
 
 The configuration file may reference additional data (e.g. GeoJSON files). These must be placed under the `data/auxdata/` directory.
 
@@ -299,6 +297,18 @@ This corresponds to the following location on your machine:
 ```text
 data/auxdata/Elm2020-demo/demo-fake-cont-mmi.json
 ```
+
+---
+
+### Experiment with the dashboard
+
+Move your mouse to the left of your browser window while on the `View` panel. An auto-hiding control panel will appear. There, you can:
+
+* Load your `dashboard profile` to view the external datasets
+* Hide/show layers under the `Display` section
+* Toggle the algorithms that are being displayed.
+
+When you need to visualize a new dataset, you can either select a pre-uploaded file under the `Load` panel, or repeat the steps above to start from fresh raw logs.
 
 ---
 
