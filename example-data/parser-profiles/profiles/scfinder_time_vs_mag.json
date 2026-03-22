@@ -2,7 +2,7 @@
   "algorithm": "finder",
   "dialect": "scfinder",
   "patterns": {
-    "1": "process_image",
-    "2": "process_image"
+    "1": "About to enter process_image function",
+    "2": "Finished processing"
   }
 }

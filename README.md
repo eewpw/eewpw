@@ -40,6 +40,8 @@ It includes both the containerized stack and the parser tooling used to generate
 1. Clone this repo and change your directory into it:
    ```bash
    git clone https://github.com/eewpw/eewpw.git
+   ```
+   ```bash
    cd eewpw
    ```
 
