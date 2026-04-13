@@ -170,6 +170,9 @@ Before running the parser, we will prepare two parser profile JSON files:
 - `example-data/parser-profiles/profiles/scfinder_time_vs_mag.json`
 - `example-data/parser-profiles/profiles/vs_time_vs_mag.json`
 
+See the [parser technical guide](docs/tools/parser.md) for a full list of dialects and currently supported file names.
+
+
 These files define the patterns that the parser searches for in the raw logs. The parser uses them in a `grep`-like way: it scans the logs, finds matching lines, and records them together with their timestamps. These are referred to as `annotations`.
 
 The filenames must stay exactly as shown above.
