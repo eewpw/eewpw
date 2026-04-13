@@ -147,6 +147,17 @@ Example:
 }
 ```
 
+|Current profile file | Algorithm | Current effective dialect(s) | Notes
+|---|---|---|---|
+| profiles/scfinder_time_vs_mag.json | finder | scfinder | Used only by the SCFinder branch.
+| profiles/finder_time_vs_mag.json | finder | native_finder, native_finder_legacy, shakealert, and alias finder | Shared Finder-family profile file for all non-SCFinder Finder branches.
+| profiles/vs_time_vs_mag.json | vs | effectively scvsmag | VS currently uses one fixed annotation profile file. The dialect field may appear in metadata, but profile selection does not branch on it.
+| profiles/plum_time_vs_mag.json | plum | effectively plum | PLUM currently uses one fixed annotation profile file.
+| profiles/epic_time_vs_mag.json | epic | shakealert only | EPIC accepts only the shakealert dialect.
+| profiles/gfast_time_vs_mag.json | gfast | shakealert only | GFAST accepts only the shakealert dialect.
+| profiles/eqinfo_time_vs_mag.json | eqinfo | shakealert only | EQInfo accepts only the shakealert dialect.
+
+
 ## Supported modes
 
 The main CLI currently supports these modes:
