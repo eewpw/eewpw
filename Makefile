@@ -26,28 +26,43 @@ $(PARSER_VENV):
 # ------------------------------
 # Makefile targets
 # ------------------------------
-.PHONY: help ensure-env dirs pull up down update logs ps smoke clean prune parser-install parser-update
+.PHONY: help ensure-env dirs pull up down update logs ps smoke clean prune parser-install parser-update parser-reset parser-check
 
 # Display available targets and usage
 help:
-	@echo "Targets: pull, up, down, update, logs, ps, smoke, clean, prune, parser-install, parser-update, ensure-env, dirs"; \
+	@echo "Targets: pull, up, down, update, logs, ps, smoke, clean, prune, parser-install, parser-update, parser-reset, parser-check, ensure-env, dirs"; \
 	echo "Use a different compose file by setting COMPOSE_FILE=<file>. e.g.: make up COMPOSE_FILE=docker-no-redis-compose.yml"
 
+
+# Verify parser CLI entry points are callable
+parser-check: $(PARSER_VENV)
+	$(PARSER_BIN)/eewpw-parse --help >/dev/null
+	$(PARSER_BIN)/eewpw-parse-live --help >/dev/null
+	$(PARSER_BIN)/eewpw-replay-log --help >/dev/null
+	@echo "Parser CLI check passed."
+
+# Remove parser venv so it can be rebuilt cleanly
+parser-reset:
+	rm -rf $(PARSER_VENV)
+	@echo "Parser environment removed: $(PARSER_VENV)"
 
 # Install or upgrade eewpw-parser into the venv
 parser-install: $(PARSER_VENV)
 	$(PARSER_PIP) install --upgrade pip
 	$(PARSER_PIP) install --upgrade --force-reinstall --no-cache-dir "git+$(PARSER_REPO_URL)@$(PARSER_VERSION)"
+	@$(MAKE) parser-check
 	@echo
-	@echo "Parser installed (force reinstalled). CLI tools are in: $(PARSER_BIN)"
+	@echo "Parser environment created/updated and parser installed. CLI tools are in: $(PARSER_BIN)"
 	@echo "Examples:"
 	@echo "  $(PARSER_BIN)/eewpw-parse --help"
 	@echo "  $(PARSER_BIN)/eewpw-parse-live --help"
 	@echo "  $(PARSER_BIN)/eewpw-replay-log --help"
 
-# Alias for updating (same as install, but mental model is 'update')
-parser-update: parser-install
-	@echo "Parser updated to $(PARSER_VERSION) from $(PARSER_REPO_URL)."
+# Rebuild parser venv from scratch, then reinstall parser
+parser-update:
+	@$(MAKE) parser-reset
+	@$(MAKE) parser-install
+	@echo "Parser environment rebuilt and parser updated to $(PARSER_VERSION) from $(PARSER_REPO_URL)."
 
 # Ensure .env exists before running other targets
 ensure-env:
