@@ -11,6 +11,7 @@ DC := docker compose -f $(COMPOSE_FILE)
 # ------------------------------
 PARSER_VENV      ?= tools/parser-venv
 PARSER_PYTHON    ?= python3
+PARSER_PY        := $(PARSER_VENV)/bin/python
 PARSER_PIP       := $(PARSER_VENV)/bin/pip
 PARSER_BIN       := $(PARSER_VENV)/bin
 # Pin to a branch or tag if you want stability (e.g. "v0.1.0")
@@ -35,11 +36,26 @@ help:
 
 
 # Verify parser CLI entry points are callable
+# Temporary deployment workaround: Python 3.9 only validates offline parser CLI here.
+# Long-term fix is to align parser/runtime Python support and remove deployment-side special cases.
 parser-check: $(PARSER_VENV)
-	$(PARSER_BIN)/eewpw-parse --help >/dev/null
-	$(PARSER_BIN)/eewpw-parse-live --help >/dev/null
-	$(PARSER_BIN)/eewpw-replay-log --help >/dev/null
-	@echo "Parser CLI check passed."
+	@set -e; \
+	py_major="$$( $(PARSER_PY) -c 'import sys; print(sys.version_info.major)' )"; \
+	py_minor="$$( $(PARSER_PY) -c 'import sys; print(sys.version_info.minor)' )"; \
+	py_mm="$$py_major.$$py_minor"; \
+	echo "Parser check using Python $$py_mm"; \
+	$(PARSER_BIN)/eewpw-parse --help >/dev/null; \
+	if [ "$$py_major" -gt 3 ] || [ "$$py_major" -eq 3 -a "$$py_minor" -ge 10 ]; then \
+		$(PARSER_BIN)/eewpw-parse-live --help >/dev/null; \
+		$(PARSER_BIN)/eewpw-replay-log --help >/dev/null; \
+		echo "Parser CLI check passed (offline + live + replay)."; \
+	elif [ "$$py_major" -eq 3 -a "$$py_minor" -eq 9 ]; then \
+		echo "WARNING: Temporary compatibility workaround active on Python 3.9; skipping live/replay parser CLI validation."; \
+		echo "Offline parser CLI check passed (live/replay checks skipped on Python 3.9)."; \
+	else \
+		echo "ERROR: Unsupported Python $$py_mm for parser-check (expected 3.9 or 3.10+)." >&2; \
+		exit 1; \
+	fi
 
 # Remove parser venv so it can be rebuilt cleanly
 parser-reset:
