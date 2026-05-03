@@ -84,7 +84,8 @@ parser-update:
 ensure-env:
 	@test -f $(ENV_FILE) || (echo "Copy .env.example to .env and adjust settings."; exit 1)
 
-# Create required data directories (from .env DATA_ROOT)
+# Create required data directories from .env.
+# `dirs` is used by `up` and `update`, so keep only non-destructive checks here.
 dirs: ensure-env
 	@set -a; source .env; set +a; \
 	mkdir -p "$$DATA_ROOT"; \
@@ -97,8 +98,10 @@ dirs: ensure-env
 	$(MAKE) _fix_permissions; \
 	$(MAKE) _check_data_root
 
-# Private helper: recursively repair DATA_ROOT permissions for bind-mounted reuse
+# Private helper: recursively repair DATA_ROOT permissions for bind-mounted reuse.
 _fix_permissions: ensure-env
+	# Resolve DATA_ROOT without `realpath` for macOS/Linux portability.
+	# chmod may fail for root-owned files; warn here and let access checks decide.
 	@set -a; source .env; set +a; \
 	if [ -z "$$DATA_ROOT" ]; then \
 		echo "ERROR: DATA_ROOT is not set in .env"; \
@@ -122,8 +125,12 @@ _fix_permissions: ensure-env
 		echo "WARNING: Continuing to _check_data_root despite chmod warnings."; \
 	fi
 
-# Private helper: verify DATA_ROOT directory access and basic dataset/index consistency
+# Private helper: verify DATA_ROOT access and warn about stale upload/index state.
 _check_data_root: ensure-env
+	# Resolve DATA_ROOT without `realpath` for macOS/Linux portability.
+	# Relative DATA_ROOT is allowed, but can point to a different folder after reinstall.
+	# Runtime dirs need r/w/x; user-managed auxdata/config only need r/x here.
+	# File/index and manifest checks are warn-only heuristics.
 	@set -a; source .env; set +a; \
 	if [ -z "$$DATA_ROOT" ]; then \
 		echo "ERROR: DATA_ROOT is not set in .env"; \
@@ -200,7 +207,7 @@ _check_data_root: ensure-env
 	if [ "$$fail" -ne 0 ]; then \
 		exit 1; \
 	fi
-
+	
 # Pull the latest images from GitHub Container Registry
 pull: ensure-env
 	$(DC) pull
