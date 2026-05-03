@@ -107,9 +107,12 @@ _fix_permissions: ensure-env
 		echo "ERROR: DATA_ROOT is not set in .env"; \
 		exit 1; \
 	fi; \
-	mkdir -p "$$DATA_ROOT"; \
 	DATA_ROOT_RAW="$$DATA_ROOT"; \
 	DATA_ROOT_ABS="$$(cd "$$DATA_ROOT" && pwd -P)"; \
+	if [ -z "$$DATA_ROOT_ABS" ]; then \
+		echo "ERROR: Failed to resolve DATA_ROOT"; \
+		exit 1; \
+	fi; \
 	echo "_fix_permissions: DATA_ROOT(raw)=$$DATA_ROOT_RAW"; \
 	echo "_fix_permissions: DATA_ROOT(abs)=$$DATA_ROOT_ABS"; \
 	perm_warn=0; \
@@ -136,9 +139,12 @@ _check_data_root: ensure-env
 		echo "ERROR: DATA_ROOT is not set in .env"; \
 		exit 1; \
 	fi; \
-	mkdir -p "$$DATA_ROOT"; \
 	DATA_ROOT_RAW="$$DATA_ROOT"; \
 	DATA_ROOT_ABS="$$(cd "$$DATA_ROOT" && pwd -P)"; \
+	if [ -z "$$DATA_ROOT_ABS" ]; then \
+		echo "ERROR: Failed to resolve DATA_ROOT"; \
+		exit 1; \
+	fi; \
 	echo "_check_data_root: COMPOSE_FILE=$(COMPOSE_FILE)"; \
 	echo "_check_data_root: DATA_ROOT(raw)=$$DATA_ROOT_RAW"; \
 	echo "_check_data_root: DATA_ROOT(abs)=$$DATA_ROOT_ABS"; \
