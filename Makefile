@@ -87,7 +87,7 @@ ensure-env:
 # Create required data directories (from .env DATA_ROOT)
 dirs: ensure-env
 	@set -a; source .env; set +a; \
-	mkdir -p $$DATA_ROOT; \
+	mkdir -p "$$DATA_ROOT"; \
 	install -d -m 0777 "$$DATA_ROOT/files"; \
 	install -d -m 0777 "$$DATA_ROOT/indexes"; \
 	install -d -m 0777 "$$DATA_ROOT/logs"; \
@@ -174,7 +174,7 @@ _check_data_root: ensure-env
 		idx_id="$$(basename "$$(dirname "$$meta")")"; \
 		file_json="$$DATA_ROOT_ABS/files/$$idx_id.json"; \
 		if [ ! -f "$$file_json" ]; then \
-			if grep -Eiq '"(dataset_type|type|source_type)"[[:space:]]*:[[:space:]]*"(virtual|derived|synthetic|remote|external)"' "$$meta"; then \
+			if grep -Eiq '"(dataset_type|dataset_kind|kind|type|source_type|source_kind)"[[:space:]]*:[[:space:]]*"(virtual|derived|synthetic|live|remote|external)"' "$$meta"; then \
 				:; \
 			else \
 				echo "WARNING: indexes/$$idx_id/meta.json exists but files/$$idx_id.json is missing (ordinary physical dataset expected)"; \
