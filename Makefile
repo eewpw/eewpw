@@ -27,7 +27,7 @@ $(PARSER_VENV):
 # ------------------------------
 # Makefile targets
 # ------------------------------
-.PHONY: help ensure-env dirs pull up down update logs ps smoke clean prune parser-install parser-update parser-reset parser-check
+.PHONY: help ensure-env dirs _fix_permissions _check_data_root pull up down update logs ps smoke clean prune parser-install parser-update parser-reset parser-check
 
 # Display available targets and usage
 help:
@@ -84,17 +84,136 @@ parser-update:
 ensure-env:
 	@test -f $(ENV_FILE) || (echo "Copy .env.example to .env and adjust settings."; exit 1)
 
-# Create required data directories (from .env DATA_ROOT)
+# Create required data directories from .env.
+# `dirs` is used by `up` and `update`, so keep only non-destructive checks here.
 dirs: ensure-env
 	@set -a; source .env; set +a; \
-	mkdir -p $$DATA_ROOT; \
+	mkdir -p "$$DATA_ROOT"; \
 	install -d -m 0777 "$$DATA_ROOT/files"; \
 	install -d -m 0777 "$$DATA_ROOT/indexes"; \
 	install -d -m 0777 "$$DATA_ROOT/logs"; \
 	install -d -m 0777 "$$DATA_ROOT/auxdata"; \
 	install -d -m 0777 "$$DATA_ROOT/config"; \
-	install -d -m 0777 "$$DATA_ROOT/manifests";
+	install -d -m 0777 "$$DATA_ROOT/manifests"; \
+	$(MAKE) _fix_permissions; \
+	$(MAKE) _check_data_root
 
+# Private helper: recursively repair DATA_ROOT permissions for bind-mounted reuse.
+_fix_permissions: ensure-env
+	# Resolve DATA_ROOT without `realpath` for macOS/Linux portability.
+	# chmod may fail for root-owned files; warn here and let access checks decide.
+	@set -a; source .env; set +a; \
+	if [ -z "$$DATA_ROOT" ]; then \
+		echo "ERROR: DATA_ROOT is not set in .env"; \
+		exit 1; \
+	fi; \
+	DATA_ROOT_RAW="$$DATA_ROOT"; \
+	DATA_ROOT_ABS="$$(cd "$$DATA_ROOT" && pwd -P)"; \
+	if [ -z "$$DATA_ROOT_ABS" ]; then \
+		echo "ERROR: Failed to resolve DATA_ROOT"; \
+		exit 1; \
+	fi; \
+	echo "_fix_permissions: DATA_ROOT(raw)=$$DATA_ROOT_RAW"; \
+	echo "_fix_permissions: DATA_ROOT(abs)=$$DATA_ROOT_ABS"; \
+	perm_warn=0; \
+	if ! find "$$DATA_ROOT_ABS" -type d -exec chmod a+rwx {} +; then \
+		echo "WARNING: _fix_permissions could not repair permissions on one or more directories under $$DATA_ROOT_ABS"; \
+		perm_warn=1; \
+	fi; \
+	if ! find "$$DATA_ROOT_ABS" -type f -exec chmod a+rw {} +; then \
+		echo "WARNING: _fix_permissions could not repair permissions on one or more files under $$DATA_ROOT_ABS"; \
+		perm_warn=1; \
+	fi; \
+	if [ "$$perm_warn" -eq 1 ]; then \
+		echo "WARNING: Continuing to _check_data_root despite chmod warnings."; \
+	fi
+
+# Private helper: verify DATA_ROOT access and warn about stale upload/index state.
+_check_data_root: ensure-env
+	# Resolve DATA_ROOT without `realpath` for macOS/Linux portability.
+	# Relative DATA_ROOT is allowed, but can point to a different folder after reinstall.
+	# Runtime dirs need r/w/x; user-managed auxdata/config only need r/x here.
+	# File/index and manifest checks are warn-only heuristics.
+	@set -a; source .env; set +a; \
+	if [ -z "$$DATA_ROOT" ]; then \
+		echo "ERROR: DATA_ROOT is not set in .env"; \
+		exit 1; \
+	fi; \
+	DATA_ROOT_RAW="$$DATA_ROOT"; \
+	DATA_ROOT_ABS="$$(cd "$$DATA_ROOT" && pwd -P)"; \
+	if [ -z "$$DATA_ROOT_ABS" ]; then \
+		echo "ERROR: Failed to resolve DATA_ROOT"; \
+		exit 1; \
+	fi; \
+	echo "_check_data_root: COMPOSE_FILE=$(COMPOSE_FILE)"; \
+	echo "_check_data_root: DATA_ROOT(raw)=$$DATA_ROOT_RAW"; \
+	echo "_check_data_root: DATA_ROOT(abs)=$$DATA_ROOT_ABS"; \
+	echo "_check_data_root: EEWPW_DATA_DIR=$${EEWPW_DATA_DIR:-}"; \
+	case "$$DATA_ROOT_RAW" in \
+		/*) ;; \
+		*) echo "WARNING: DATA_ROOT is relative ($$DATA_ROOT_RAW). Absolute path resolves to $$DATA_ROOT_ABS" ;; \
+	esac; \
+	fail=0; \
+	for d in files indexes logs auxdata config manifests; do \
+		if [ ! -d "$$DATA_ROOT_ABS/$$d" ]; then \
+			echo "ERROR: Missing required directory: $$DATA_ROOT_ABS/$$d"; \
+			fail=1; \
+		fi; \
+	done; \
+	for d in files indexes logs manifests; do \
+		p="$$DATA_ROOT_ABS/$$d"; \
+		if [ -d "$$p" ] && { [ ! -r "$$p" ] || [ ! -w "$$p" ] || [ ! -x "$$p" ]; }; then \
+			echo "ERROR: Insufficient runtime access for $$p (need r/w/x)"; \
+			fail=1; \
+		fi; \
+	done; \
+	for d in auxdata config; do \
+		p="$$DATA_ROOT_ABS/$$d"; \
+		if [ -d "$$p" ] && { [ ! -r "$$p" ] || [ ! -x "$$p" ]; }; then \
+			echo "ERROR: Insufficient access for $$p (need r/x)"; \
+			fail=1; \
+		fi; \
+	done; \
+	for f in "$$DATA_ROOT_ABS"/files/*.json; do \
+		[ -e "$$f" ] || break; \
+		id="$$(basename "$$f" .json)"; \
+		meta="$$DATA_ROOT_ABS/indexes/$$id/meta.json"; \
+		if [ ! -f "$$meta" ]; then \
+			echo "WARNING: files/$$id.json exists but indexes/$$id/meta.json is missing"; \
+		fi; \
+	done; \
+	for meta in "$$DATA_ROOT_ABS"/indexes/*/meta.json; do \
+		[ -e "$$meta" ] || break; \
+		idx_id="$$(basename "$$(dirname "$$meta")")"; \
+		file_json="$$DATA_ROOT_ABS/files/$$idx_id.json"; \
+		if [ ! -f "$$file_json" ]; then \
+			if grep -Eiq '"(dataset_type|dataset_kind|kind|type|source_type|source_kind)"[[:space:]]*:[[:space:]]*"(virtual|derived|synthetic|live|remote|external)"' "$$meta"; then \
+				:; \
+			else \
+				echo "WARNING: indexes/$$idx_id/meta.json exists but files/$$idx_id.json is missing (ordinary physical dataset expected)"; \
+			fi; \
+		fi; \
+	done; \
+	for manifest in "$$DATA_ROOT_ABS"/manifests/*.json; do \
+		[ -e "$$manifest" ] || break; \
+		if [ ! -s "$$manifest" ]; then \
+			echo "WARNING: manifests/$$(basename "$$manifest") appears malformed (empty file)"; \
+		elif ! grep -Eq '^[[:space:]]*[\{\[]' "$$manifest"; then \
+			echo "WARNING: manifests/$$(basename "$$manifest") appears malformed (not JSON-like)"; \
+		elif ! grep -Eq ':' "$$manifest"; then \
+			echo "WARNING: manifests/$$(basename "$$manifest") appears malformed (missing key/value separator)"; \
+		fi; \
+		sources="$$(grep -Eo '"source"[[:space:]]*:[[:space:]]*"[^"]+"' "$$manifest" | sed -E 's/.*:[[:space:]]*"([^"]+)"/\1/' || true)"; \
+		for src in $$sources; do \
+			if [ ! -f "$$DATA_ROOT_ABS/indexes/$$src/meta.json" ]; then \
+				echo "WARNING: manifests/$$(basename "$$manifest") references missing indexes/$$src/meta.json"; \
+			fi; \
+		done; \
+	done; \
+	if [ "$$fail" -ne 0 ]; then \
+		exit 1; \
+	fi
+	
 # Pull the latest images from GitHub Container Registry
 pull: ensure-env
 	$(DC) pull
