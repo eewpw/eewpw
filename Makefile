@@ -40,15 +40,23 @@ help:
 # Long-term fix is to align parser/runtime Python support and remove deployment-side special cases.
 parser-check: $(PARSER_VENV)
 	@set -e; \
+	check_cli() { \
+		cli_name="$$1"; \
+		echo "Checking $$cli_name ..."; \
+		if ! "$(PARSER_BIN)/$$cli_name" --help >/dev/null; then \
+			echo "ERROR: $$cli_name --help failed" >&2; \
+			return 1; \
+		fi; \
+	}; \
 	py_major="$$( $(PARSER_PY) -c 'import sys; print(sys.version_info.major)' )"; \
 	py_minor="$$( $(PARSER_PY) -c 'import sys; print(sys.version_info.minor)' )"; \
 	py_mm="$$py_major.$$py_minor"; \
 	echo "Parser check using Python $$py_mm"; \
-	$(PARSER_BIN)/eewpw-parse --help >/dev/null; \
+	check_cli eewpw-parse; \
 	if [ "$$py_major" -gt 3 ] || [ "$$py_major" -eq 3 -a "$$py_minor" -ge 10 ]; then \
-		$(PARSER_BIN)/eewpw-parse-live --help >/dev/null; \
-		$(PARSER_BIN)/eewpw-replay-log --help >/dev/null; \
-		echo "Parser CLI check passed (offline + live + replay)."; \
+		check_cli eewpw-parse-live; \
+		check_cli eewpw-replay-log; \
+		echo "Parser CLI check passed."; \
 	elif [ "$$py_major" -eq 3 -a "$$py_minor" -eq 9 ]; then \
 		echo "WARNING: Temporary compatibility workaround active on Python 3.9; skipping live/replay parser CLI validation."; \
 		echo "Offline parser CLI check passed (live/replay checks skipped on Python 3.9)."; \
@@ -99,9 +107,9 @@ dirs: ensure-env
 	$(MAKE) _check_data_root
 
 # Private helper: recursively repair DATA_ROOT permissions for bind-mounted reuse.
+# Resolve DATA_ROOT without `realpath` for macOS/Linux portability.
+# chmod may fail for root-owned files; warn here and let access checks decide.
 _fix_permissions: ensure-env
-	# Resolve DATA_ROOT without `realpath` for macOS/Linux portability.
-	# chmod may fail for root-owned files; warn here and let access checks decide.
 	@set -a; source .env; set +a; \
 	if [ -z "$$DATA_ROOT" ]; then \
 		echo "ERROR: DATA_ROOT is not set in .env"; \
@@ -129,11 +137,11 @@ _fix_permissions: ensure-env
 	fi
 
 # Private helper: verify DATA_ROOT access and warn about stale upload/index state.
+# Resolve DATA_ROOT without `realpath` for macOS/Linux portability.
+# Relative DATA_ROOT is allowed, but can point to a different folder after reinstall.
+# Runtime dirs need r/w/x; user-managed auxdata/config only need r/x here.
+# File/index and manifest checks are warn-only heuristics.
 _check_data_root: ensure-env
-	# Resolve DATA_ROOT without `realpath` for macOS/Linux portability.
-	# Relative DATA_ROOT is allowed, but can point to a different folder after reinstall.
-	# Runtime dirs need r/w/x; user-managed auxdata/config only need r/x here.
-	# File/index and manifest checks are warn-only heuristics.
 	@set -a; source .env; set +a; \
 	if [ -z "$$DATA_ROOT" ]; then \
 		echo "ERROR: DATA_ROOT is not set in .env"; \
@@ -213,7 +221,7 @@ _check_data_root: ensure-env
 	if [ "$$fail" -ne 0 ]; then \
 		exit 1; \
 	fi
-	
+
 # Pull the latest images from GitHub Container Registry
 pull: ensure-env
 	$(DC) pull
