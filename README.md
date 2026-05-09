@@ -140,7 +140,7 @@ In this section, we run a complete example workflow using the EEWPW system. The 
 We will:
 
 1. Use example raw logs located under `example-data/raw-logs/`
-2. Use example parser profile JSON files under `example-data/parser-profiles/profiles/`
+2. Use example parser annotation configuration under `example-data/parser-profiles/annotations.json`
 3. Run the parser (`eewpw-parse`) with a custom configuration root
 4. Generate an output JSON file
 
@@ -154,52 +154,50 @@ example-data/
     Elm2020/
       scfinder.log
   parser-profiles/
-    profiles/
+    annotations.json
+    profiles/              # legacy fallback only, if present
       scfinder_time_vs_mag.json
       vs_time_vs_mag.json
 ```
 
 - `raw-logs/` contains input log files to be parsed
-- `parser-profiles/profiles/` contains JSON files that define how log lines are interpreted by the parser
+- `parser-profiles/annotations.json` contains the annotation patterns used by the parser
+- `parser-profiles/profiles/` is optional legacy fallback compatibility for older setups
 
 
-### Prepare parser profile JSON files
+### Prepare annotation patterns (`annotations.json`)
 
-Before running the parser, we will prepare two parser profile JSON files:
+Before running the parser, prepare:
 
-- `example-data/parser-profiles/profiles/scfinder_time_vs_mag.json`
-- `example-data/parser-profiles/profiles/vs_time_vs_mag.json`
+- `example-data/parser-profiles/annotations.json`
 
-See the [parser technical guide](docs/tools/parser.md) for a full list of dialects and currently supported file names.
+See the [parser technical guide](docs/tools/parser.md) for a full list of supported keys.
 
 
-These files define the patterns that the parser searches for in the raw logs. The parser uses them in a `grep`-like way: it scans the logs, finds matching lines, and records them together with their timestamps. These are referred to as `annotations`.
+This file defines the patterns that the parser searches for in the raw logs. The parser uses them in a `grep`-like way: it scans the logs, finds matching lines, and records them together with their timestamps. These are referred to as `annotations`.
 
-The filenames must stay exactly as shown above.
-
-**Important**: The profile JSON files **must** be placed inside a directory named `profiles/`. The parser expects this structure and will not detect the files if they are placed directly under another directory.
-
-Users can edit the `patterns` section freely. Each entry must contain:
-
-- a pattern identifier (the key; can be any string)
-- the pattern string to search for in the log file
+Users can edit the annotation entries freely. For this example, the keys are `finder/scfinder` and `vs/scvsmag`.
 
 A minimal example looks like this:
 
 ```json
 {
-  "algorithm": "finder",
-  "dialect": "scfinder",
-  "patterns": {
-    "1": "length has increased",
-    "2": "length has decreased"
+  "annotations": {
+    "time_vs_magnitude": {
+      "finder/scfinder": {
+        "1": "length has increased",
+        "2": "length has decreased"
+      },
+      "vs/scvsmag": {
+        "start_event": "Start logging for event",
+        "end_event": "End logging for event"
+      }
+    }
   }
 }
 ```
 
-The top-level `algorithm` and `dialect` fields are informational. For this workflow, the main part to edit is `patterns`.
-
-In many cases, these profile JSONs can be reused across runs. Users often keep them in a central location and apply them to similar log files.
+Older `profiles/*.json` files are still supported as fallback compatibility and are mainly kept for older setups.
 
 
 ### Run the parser
@@ -212,11 +210,11 @@ mkdir -p example-data/output
 
 A few important points that require your attention:
 
-1. The `--config-root` argument must point to the parent directory that contains the `profiles/` folder (not the `profiles/` folder itself). In this example, it points to `example-data/parser-profiles`, which contains the required `profiles/` subdirectory.
+1. The `--config-root` argument should point to the directory that contains `annotations.json`. In this example, it points to `example-data/parser-profiles`.
 
-2. Always provide `--config-root` when using custom profile files, otherwise the parser will use its default configuration.
+2. Always provide `--config-root` when using custom annotation patterns, otherwise the parser will use its default configuration.
 
-3. The parser automatically selects the correct profile JSON file based on the `--algo` and `--dialect` arguments. The filenames must follow the expected naming convention (for example, `scfinder_time_vs_mag.json` for `finder + scfinder`, and `vs_time_vs_mag.json` for `vs + scvsmag`). These filenames must remain unchanged so that the parser can locate and use them correctly.
+3. Legacy `profiles/*.json` files still work as fallback compatibility. If used, keep them under `profiles/` using the expected legacy filenames.
 
 
 Now, we run the parser for finder/scfinder:
@@ -320,9 +318,9 @@ When you need to visualize a new dataset, you can either select a pre-uploaded f
 The following rules must be respected for EEWPW to work correctly:
 
 **Parser**
-- `--config-root` must point to a directory that contains a `profiles/` folder
-- Profile JSON files must be placed under `profiles/`
-- Profile filenames must follow the expected naming convention (e.g. `scfinder_time_vs_mag.json`, `vs_time_vs_mag.json`)
+- `--config-root` should point to a directory that contains `annotations.json`
+- `annotations.json` is the normal/default place for custom annotation patterns
+- Older `profiles/*.json` files are legacy fallback compatibility for older setups
 
 **Dashboard**
 - The configuration file must be named `eewpw-config.toml` and placed under `data/config/`

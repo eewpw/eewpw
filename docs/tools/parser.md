@@ -77,9 +77,10 @@ Core arguments:
 | `--show-env` | no | `false` | Print environment/config diagnostics and exit immediately |
 
 Parser runtime config contract:
-- Supported runtime files are `global.json` and `profiles/*.json`.
+- Supported runtime files are `global.json`, `annotations.json`, and `profiles/*.json` (legacy fallback).
 - Resolution order is `--config-root` override, then `EEWPW_PARSER_CONFIG_ROOT`, then packaged defaults in `src/eewpw_parser/configs/`. 
-- The configuration root must contain a `profiles/` directory with the expected profile JSON files.
+- A custom configuration root should normally contain `annotations.json`.
+- A `profiles/` directory is optional and used for legacy fallback compatibility.
 - There is no automatic fallback to repo-root `./example-configs` or `./user-config`.
 - Repo-root `./example-configs` is example-only; it is used at runtime only when explicitly selected as a config root.
 - `eewpw-parse --show-env` mirrors this runtime per-file resolution and reports which source is selected for each runtime file.
@@ -111,24 +112,31 @@ Resolved files
 global.json
 [X] packaged defaults
 
+annotations.json
+[X] --config-root /custom/configs/annotations.json
+
 profiles/vs_time_vs_mag.json
 [X] --config-root /custom/configs/profiles/vs_time_vs_mag.json
 ```
 
-## Profile JSON files
+## Annotation configuration
 
-- Profile selection is based on filename conventions, not on the `algorithm` or `dialect` fields inside the JSON.
-- Packaged profile JSON files live in `src/eewpw_parser/configs/profiles/`.
-- Example copies are under `example-configs/profiles/`; users can copy/edit profiles and point the parser to them with `--config-root` or `EEWPW_PARSER_CONFIG_ROOT`.
-- Top-level `algorithm` and `dialect` fields are informational metadata only. They are not used by parser runtime logic.
-- Runtime annotation matching behavior is driven by `patterns` entries only (with `patterns.timestamp_regex` stripped by `load_profile()`).
+- The preferred/default annotation configuration file is `annotations.json`.
+- Runtime keys are grouped under `annotations.time_vs_magnitude`.
+- Each algorithm/dialect pair uses a key such as `finder/scfinder` or `vs/scvsmag`.
+- For the same algorithm/dialect key, `annotations.json` takes precedence over legacy profile files.
+- Legacy `profiles/*.json` files are still supported as fallback compatibility.
 
 Expected structure:
 
 ```json
 {
-  "patterns": {
-    "<pattern_id>": "<string-or-regex searched in log lines>"
+  "annotations": {
+    "time_vs_magnitude": {
+      "<algorithm>/<dialect>": {
+        "<pattern_id>": "<string-or-regex searched in log lines>"
+      }
+    }
   }
 }
 ```
@@ -137,15 +145,21 @@ Example:
 
 ```json
 {
-  "algorithm": "epic",
-  "dialect": "shakealert",
-  "patterns": {
-    "start_event": "Start logging for event",
-    "end_event": "End logging for event",
-    "likelihood": "likelihood:"
+  "annotations": {
+    "time_vs_magnitude": {
+      "epic/shakealert": {
+        "start_event": "Start logging for event",
+        "end_event": "End logging for event",
+        "likelihood": "likelihood:"
+      }
+    }
   }
 }
 ```
+
+### Legacy fallback profile files
+
+These files are legacy compatibility inputs and should not be used as the primary workflow for new setups.
 
 |Current profile file | Algorithm | Current effective dialect(s) | Notes
 |---|---|---|---|
@@ -243,7 +257,7 @@ For full replay CLI behavior, ordering model, timing rules, and caveats, see [Lo
 - **TODO**: Add live parsing and log-replay documentation (currently missing).
 - Prefer canonical dialect names in documentation and scripts.
 - Treat alias spellings as compatibility inputs, not preferred names.
-- Profile JSONs provide annotation match regex patterns; `patterns.timestamp_regex` is not a runtime key and is stripped by `load_profile()`.
+- `annotations.json` (preferred) and legacy profile JSONs provide annotation match patterns.
 - PLUM uses the shared profile loader path (`profiles/plum_time_vs_mag.json`) like the other parsers, and PLUM annotation timestamps are intentionally `""`.
 - If a new dialect is added in code, this file should be updated at the same time.
 - If CLI flags or entry points change, update this file together with the README examples.

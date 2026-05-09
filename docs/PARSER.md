@@ -59,6 +59,9 @@ tools/parser-venv/bin/eewpw-parse \
   /path/to/finder.log
 ```
 
+For custom annotation patterns, use `--config-root` and point it to a folder that contains `annotations.json`.
+Legacy `profiles/*.json` files still work as fallback compatibility for older setups.
+
 You may then index the file using the backend’s `/files` endpoint.
 
 ## 4. Live Parsing (Real Logs)
